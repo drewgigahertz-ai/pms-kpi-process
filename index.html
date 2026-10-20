@@ -79,7 +79,7 @@ p{margin:0}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;align-items:start}
 
 /* inputs */
-label.fld{display:flex;flex-direction:column;gap:5px;font-size:.82rem;font-weight:600;color:var(--muted)}
+label.fld,div.fld{display:flex;flex-direction:column;gap:5px;font-size:.82rem;font-weight:600;color:var(--muted)}
 input[type=text],input[type=number],input[type=date],select,textarea{font:inherit;font-size:.92rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%;min-width:0}
 textarea{resize:vertical;min-height:64px}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
@@ -219,7 +219,7 @@ select optgroup{color:var(--muted);font-weight:600}
 .pivot thead th.measure{text-transform:none;letter-spacing:0;font-weight:500}
 .pivot th.rowh.rep{color:transparent}
 .pivot tr.grp-start th,.pivot tr.grp-start td{border-top:2px solid var(--line)}
-.fpop{position:fixed;z-index:30;width:min(300px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:12px;display:flex;flex-direction:column;gap:8px}
+.fpop{position:fixed;z-index:30;overflow-y:auto;width:min(300px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:12px;display:flex;flex-direction:column;gap:8px}
 .fpop-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .fpop-acts{display:flex;gap:4px}
 .fpop-list{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0}
@@ -247,6 +247,32 @@ table.rate td{white-space:nowrap}
 .badge.acc{background:var(--accent-soft);color:var(--accent)}
 .badges{display:inline-flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .acc-line{white-space:nowrap}
+/* multi-select buttons in the control bar */
+.ms{font:inherit;font-size:.92rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%;min-width:0;display:flex;align-items:center;gap:8px;cursor:pointer;text-align:left}
+.ms:hover{border-color:var(--muted)}
+.ms[aria-expanded="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ms-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-txt .n{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:1px 7px;margin-right:6px;vertical-align:1px}
+.ms-chev{width:16px;height:16px;flex:none;color:var(--muted)}
+.fpop>*{flex-shrink:0}
+.zsel{display:flex;flex-direction:column;gap:4px}
+.zitem{display:grid;grid-template-columns:22px 1fr auto auto auto;align-items:center;gap:2px;padding:4px 4px 4px 6px;border:1px solid var(--accent);border-radius:7px;font-size:.86rem;font-weight:600}
+.znum{font-family:var(--font-mono);font-size:.72rem;color:var(--accent)}
+.zgroup{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:6px 6px 2px}
+.fpop-item.off{opacity:.45;cursor:not-allowed}
+/* pivot table layout */
+#pivotTable,#vizTable .tbl-wrap{width:fit-content;max-width:100%}
+.pivot thead th{vertical-align:bottom}
+.pivot thead th.measure-h{text-transform:none;letter-spacing:0;font-size:.82rem;color:var(--fg);font-weight:600;background:var(--sunk)}
+.pivot thead th.colfields{color:var(--fg);border-left:1px solid var(--line)}
+.pivot thead th.colfields .sep{margin:0 8px;color:var(--muted)}
+.pivot thead th.blank{background:var(--sunk)}
+.pivot thead th.grp{text-align:center;border-left:1px solid var(--line);color:var(--fg)}
+.pivot thead th.total-h{border-left:1px solid var(--line);color:var(--fg)}
+.pivot td.num,.pivot th.num{min-width:84px}
+.pivot td.total,.pivot tr.total td:last-child{border-left:1px solid var(--line)}
+.pivot th.rowh{padding-right:28px}
+.pivot .gs{border-left:1px solid var(--line)}
 /* choice editor */
 .opts{display:flex;flex-direction:column;gap:6px;min-width:0}
 .opts-title{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
@@ -431,11 +457,9 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
           </div>
         <div class="pick-list" id="formPicker" role="group" aria-label="Form to pivot"></div>
       </div>
-      <div class="card pv-zones" id="pvZones">
-        <div class="zone"><span class="zone-title">Rows</span><div class="zone-chips" id="rowsChips"></div></div>
-        <div class="zone"><span class="zone-title">Columns</span><div class="zone-chips" id="colsChips"></div></div>
-      </div>
-      <div class="card controls">
+      <div class="card controls" id="pvCtl">
+        <div class="fld"><span id="lblRows">Rows</span><button type="button" class="ms" id="pvRowsBtn" data-zonebtn="rows" aria-labelledby="lblRows pvRowsTxt" aria-haspopup="dialog"><span class="ms-txt" id="pvRowsTxt"></span><svg class="ms-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="fld"><span id="lblCols">Columns</span><button type="button" class="ms" id="pvColsBtn" data-zonebtn="cols" aria-labelledby="lblCols pvColsTxt" aria-haspopup="dialog"><span class="ms-txt" id="pvColsTxt"></span><svg class="ms-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
         <label class="fld" for="pvVal">Values<select id="pvVal"></select></label>
         <label class="fld" for="pvGran" id="granWrap">Group dates by<select id="pvGran">
           <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option>
@@ -1326,20 +1350,13 @@ function optGroup(list,sel){
 const hiddenCount=id=>(state.pivot.filters?.[id]||[]).length;
 const filterBtn=f=>{ const n=hiddenCount(f.id);
   return `<button type="button" class="fbtn ${n?'on':''}" data-filter="${f.id}" aria-label="Filter ${esc(f.label)}${n?`, ${n} hidden`:''}" title="Filter ${esc(f.label)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.6 5.4V13l-2.8 1.2V8.4z" fill="currentColor"/></svg>${n?`<span>${n}</span>`:''}</button>`; };
-function zoneHtml(zone){
-  const p=state.pivot, ids=p[zone], used=[...p.rows,...p.cols];
-  const chips=ids.map((id,i)=>{ const f=pfById(id); if(!f)return '';
-    return `<span class="fchip" data-zone="${zone}" data-id="${id}"><span class="fchip-l">${esc(f.label)}</span>${filterBtn(f)}
-      <button type="button" class="fchip-b" data-move="-1" ${i===0?'disabled':''} aria-label="Move ${esc(f.label)} earlier">‹</button>
-      <button type="button" class="fchip-b" data-move="1" ${i===ids.length-1?'disabled':''} aria-label="Move ${esc(f.label)} later">›</button>
-      <button type="button" class="fchip-b" data-rm aria-label="Remove ${esc(f.label)}" ${zone==='rows'&&ids.length<2?'disabled':''}>×</button></span>`; }).join('');
-  const avail=groupable().filter(f=>!used.includes(f.id));
-  return chips+(avail.length?`<select class="add-field" data-add="${zone}" aria-label="Add a ${zone==='rows'?'row':'column'} field"><option value="">+ Add field</option>${optGroup(avail,'')}</select>`:'');
-}
 function renderPivotControls(){
   MEASURES=ALL_MEASURES.filter(m=>m.id!=='m_accuracy'||isAccForm(pivotForm()?.id));
   fixPivot(); const p=state.pivot, n=pivotForm()?1:0;
-  $('#rowsChips').innerHTML=zoneHtml('rows'); $('#colsChips').innerHTML=zoneHtml('cols')||'<span class="opt-hint">None</span>';
+  const txt=ids=>ids.length?`${ids.length>1?`<span class="n">${ids.length}</span>`:''}${ids.map(id=>esc(pfById(id)?.label||'')).join(' › ')}`:'<span class="dim">None</span>';
+  $('#pvRowsTxt').innerHTML=txt(p.rows); $('#pvColsTxt').innerHTML=txt(p.cols);
+  $('#pvRowsBtn').title=p.rows.map(id=>pfById(id)?.label).join(' › '); $('#pvColsBtn').title=p.cols.map(id=>pfById(id)?.label).join(' › ')||'None';
+  if(zoneOpen)renderZonePop();
   $('#pvVal').innerHTML=`<optgroup label="Compliance"><option value="" ${!p.value?'selected':''}>Count of responses</option>${MEASURES.map(m=>`<option value="${m.id}" ${p.value===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`+optGroup(numeric(),p.value);
   $('#pvAgg').value=p.agg; $('#pvAgg').disabled=!p.value||isMeasure(p.value);
   $('#pvGran').value=p.gran;
@@ -1354,7 +1371,7 @@ function renderPivotControls(){
     :p.value==='m_accuracy'?'<b>Accuracy</b> = average of the raters\' scores (0–100%) on the latest submission per person and task. Submissions waiting for a rating show as pending and are not counted until rated.'
     :p.value==='m_ontime'?'<b>On-time rate</b> = submissions made by the task\'s End time stamp ÷ all submissions.'
     :p.value?'':'Counting responses. Pick Completeness % or On-time rate % under Values, or a number, scale or rating question to sum or average it.')
-    +' Add several fields to Rows or Columns to nest them. Use the filter button on a field to choose which values to show.'
+    +' Tick several fields under Rows or Columns to nest them. Use the filter button next to a field name in the table to choose which values to show.'
     +(multi?' A checkbox question can have several answers, so one response can appear in more than one row or column. Totals count each response once.':'');
 }
 function pivotChanged(){ save(); renderPivotControls(); if(state.tab==='viz')renderViz(); else renderPivot(); }
@@ -1363,12 +1380,42 @@ function pivotChanged(){ save(); renderPivotControls(); if(state.tab==='viz')ren
   if(k==='value'&&e.target.value){ const f=pfById(e.target.value); if(f&&(f.type==='scale'||f.type==='rating'))state.pivot.agg='avg'; }
   pivotChanged();
 }));
-$('#pvZones').addEventListener('change',e=>{ const z=e.target.dataset.add; if(!z||!e.target.value)return; state.pivot[z].push(e.target.value); pivotChanged(); });
-$('#pvZones').addEventListener('click',e=>{
-  const chip=e.target.closest('.fchip'); if(!chip)return; const z=chip.dataset.zone, id=chip.dataset.id, arr=state.pivot[z], i=arr.indexOf(id);
-  const mv=e.target.closest('[data-move]'); if(mv){ const j=i+Number(mv.dataset.move); if(j<0||j>=arr.length)return; [arr[i],arr[j]]=[arr[j],arr[i]]; pivotChanged(); return; }
-  if(e.target.closest('[data-rm]')){ if(z==='rows'&&arr.length<2)return; arr.splice(i,1); pivotChanged(); }
-});
+/* Rows / Columns picker: a checklist popover, applied immediately */
+let zoneOpen=null;
+function renderZonePop(){
+  const z=zoneOpen, p=state.pivot, ids=p[z], other=z==='rows'?'cols':'rows', pop=$('#fpop'), g=groupable();
+  const grp=(label,list)=>list.length?`<div class="zgroup">${label}</div>`+list.map(f=>{ const inOther=p[other].includes(f.id), on=ids.includes(f.id);
+      return `<label class="fpop-item ${inOther?'off':''}"><input type="checkbox" data-zf="${f.id}" ${on?'checked':''} ${inOther?'disabled':''}><span>${esc(f.label)}</span><span class="mono">${inOther?(other==='rows'?'in Rows':'in Columns'):on?'#'+(ids.indexOf(f.id)+1):''}</span></label>`; }).join(''):'';
+  pop.innerHTML=`<div class="fpop-head"><b>${z==='rows'?'Rows':'Columns'}</b><span class="opt-hint">${ids.length} selected</span></div>
+    ${ids.length?`<div class="zsel">${ids.map((id,i)=>`<div class="zitem"><span class="znum">${i+1}</span><span>${esc(pfById(id)?.label||id)}</span>
+      <button type="button" class="fchip-b" data-zmove="${id}|-1" ${i===0?'disabled':''} aria-label="Move up">↑</button>
+      <button type="button" class="fchip-b" data-zmove="${id}|1" ${i===ids.length-1?'disabled':''} aria-label="Move down">↓</button>
+      <button type="button" class="fchip-b" data-zrm="${id}" ${z==='rows'&&ids.length<2?'disabled':''} aria-label="Remove">×</button></div>`).join('')}</div>`:'<span class="opt-hint">None. Tick fields below to add them.</span>'}
+    <div class="fpop-list">${grp('Schedule',g.filter(f=>f.taskAttr))}${grp('Accuracy',g.filter(f=>f.accAttr))}${grp('Form questions',g.filter(f=>f.sources))}${grp('Recorded automatically',g.filter(f=>f.system))}</div>
+    <div class="fpop-foot"><button type="button" class="btn small" id="zoneDone">Done</button><span class="opt-hint">The first field is the outer group.</span></div>`;
+}
+function openZone(z){
+  const btn=$(z==='rows'?'#pvRowsBtn':'#pvColsBtn'), pop=$('#fpop');
+  fpopField=null; zoneOpen=z; renderZonePop(); pop.hidden=false;
+  document.querySelectorAll('[data-zonebtn]').forEach(b=>b.setAttribute('aria-expanded',b===btn?'true':'false'));
+  const r=btn.getBoundingClientRect(), w=pop.offsetWidth, h=pop.offsetHeight;
+  const top=r.bottom+6; pop.style.maxHeight=Math.max(300,innerHeight-top-16)+'px';
+  pop.style.left=Math.max(16,Math.min(r.left,innerWidth-w-16))+'px'; pop.style.top=top+'px';
+}
+$('#pvCtl').addEventListener('click',e=>{ const b=e.target.closest('[data-zonebtn]'); if(!b)return; e.stopPropagation();
+  if(zoneOpen===b.dataset.zonebtn&&!$('#fpop').hidden){ closeFilter(); return; } openZone(b.dataset.zonebtn); });
+$('#fpop').addEventListener('change',e=>{ if(!zoneOpen)return; const id=e.target.dataset.zf; if(!id)return;
+  const arr=state.pivot[zoneOpen];
+  if(e.target.checked){ if(!arr.includes(id))arr.push(id); }
+  else { if(zoneOpen==='rows'&&arr.length<2){ e.target.checked=true; toast('Keep at least one field in Rows.'); return; } arr.splice(arr.indexOf(id),1); }
+  pivotChanged(); });
+$('#fpop').addEventListener('click',e=>{ if(!zoneOpen)return;
+  if(e.target.id==='zoneDone'){ e.stopPropagation(); closeFilter(); return; }
+  const mv=e.target.closest('[data-zmove]'), rm=e.target.closest('[data-zrm]'); if(!mv&&!rm)return;
+  e.stopPropagation(); const arr=state.pivot[zoneOpen];
+  if(mv){ const [id,d]=mv.dataset.zmove.split('|'), i=arr.indexOf(id), j=i+Number(d); if(j<0||j>=arr.length)return; [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  if(rm){ if(zoneOpen==='rows'&&arr.length<2)return; arr.splice(arr.indexOf(rm.dataset.zrm),1); }
+  pivotChanged(); });
 document.addEventListener('click',e=>{ if(e.target.id==='clearFilters'){ state.pivot.filters={}; pivotChanged(); toast('Filters cleared'); } });
 
 /* ---------- filter popover ---------- */
@@ -1380,7 +1427,7 @@ function allKeysFor(f){
   return sortKeys(f,[...counts.keys()]).map(k=>[k,counts.get(k)]);
 }
 function openFilter(id,anchor){
-  const f=pfById(id); if(!f)return; fpopField=id;
+  const f=pfById(id); if(!f)return; closeFilter(); fpopField=id;
   const hidden=new Set(state.pivot.filters?.[id]||[]), keys=allKeysFor(f), pop=$('#fpop');
   pop.innerHTML=`<div class="fpop-head"><b>${esc(f.label)}</b><span class="opt-hint">${keys.length} values</span></div>
     ${keys.length>8?`<input type="search" id="fpopSearch" placeholder="Search values" aria-label="Search values">`:''}
@@ -1394,7 +1441,7 @@ function openFilter(id,anchor){
   pop.style.left=Math.max(16,left)+'px'; pop.style.top=top+'px';
   (document.getElementById('fpopSearch')||pop.querySelector('input'))?.focus();
 }
-function closeFilter(){ $('#fpop').hidden=true; fpopField=null; }
+function closeFilter(){ $('#fpop').hidden=true; $('#fpop').style.maxHeight=''; fpopField=null; zoneOpen=null; document.querySelectorAll('[data-zonebtn]').forEach(b=>b.setAttribute('aria-expanded','false')); }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-filter]'); if(b){ e.stopPropagation(); if(fpopField===b.dataset.filter&&!$('#fpop').hidden){closeFilter();return;} openFilter(b.dataset.filter,b); return; }
   const pop=$('#fpop'); if(pop.hidden)return;
@@ -1530,29 +1577,31 @@ function pivotHtml(P,heat){
   const nr=P.rfs.length, nc=P.cfs.length; let max=P.agg==='pct'?100:0;
   if(heat&&!max)P.rowKeys.forEach(r=>P.colKeys.forEach(c=>{const v=P.value(r,c);if(v>max)max=v;}));
   const sub=(r,c)=>{ const d=P.detail(r,c); return d?`<span class="sub">${d.txt??`${d.n} of ${d.exp}`}</span>`:''; };
-  const cell=(v,r,c)=>{ const st=heat&&v!=null&&max?` style="background:color-mix(in srgb, var(--accent) ${Math.round(6+Math.min(1,v/max)*44)}%, transparent)"`:''; return `<td class="num"${st}>${fmt(v,P.agg)}${sub(r,c)}</td>`; };
+  const gs=new Set(nc>1?P.colKeys.filter((k,i)=>i>0&&P.colParts(k)[0]!==P.colParts(P.colKeys[i-1])[0]):[]);
+  const cell=(v,r,c)=>{ const st=heat&&v!=null&&max?` style="background:color-mix(in srgb, var(--accent) ${Math.round(6+Math.min(1,v/max)*44)}%, transparent)"`:''; return `<td class="num${gs.has(c)?' gs':''}"${st}>${fmt(v,P.agg)}${sub(r,c)}</td>`; };
   const fh=f=>`<span class="th-f">${esc(f.label)}${filterBtn(f)}</span>`;
+  /* Excel-style header:
+     row 1        : [value name over the row fields] [column field names over the value columns] [Total]
+     middle rows  : outer column levels, neighbours with the same value merged
+     last row     : [row field names] [innermost column values]                                  */
   let h=`<table class="pivot"><thead>`;
   if(nc){
+    const ks=P.colKeys, span=(i,j)=>{ const pre=P.colParts(ks[j]).slice(0,i+1).join(SEP); let n=1; while(j+n<ks.length&&P.colParts(ks[j+n]).slice(0,i+1).join(SEP)===pre)n++; return n; };
+    h+=`<tr><th colspan="${nr}" class="measure-h">${esc(measureName(P))}</th><th colspan="${ks.length}" class="colfields">${P.cfs.map(fh).join('<span class="sep">›</span>')}</th><th class="num total-h" rowspan="${nc+1}">Total</th></tr>`;
     for(let i=0;i<nc;i++){
-      h+=`<tr><th colspan="${nr}" class="corner col-field">${fh(P.cfs[i])}</th>`;
-      /* merge neighbouring columns that share the same values up to this level */
-      let j=0; const ks=P.colKeys;
-      while(j<ks.length){ const pre=P.colParts(ks[j]).slice(0,i+1).join(SEP); let span=1;
-        while(j+span<ks.length&&P.colParts(ks[j+span]).slice(0,i+1).join(SEP)===pre)span++;
-        h+=`<th class="num ${i<nc-1?'grp':''}" colspan="${span}">${esc(labelOf(P.cfs[i],P.colParts(ks[j])[i]))}</th>`; j+=span; }
-      if(i===0)h+=`<th class="num" rowspan="${nc+1}">Total</th>`;
+      const last=i===nc-1;
+      h+='<tr>'+(last?P.rfs.map(f=>`<th class="corner">${fh(f)}</th>`).join(''):`<th colspan="${nr}" class="blank"></th>`);
+      let j=0; while(j<ks.length){ const n=span(i,j); h+=`<th class="${last?'num':'grp'}${gs.has(ks[j])?' gs':''}" colspan="${n}">${esc(labelOf(P.cfs[i],P.colParts(ks[j])[i]))}</th>`; j+=n; }
       h+='</tr>';
     }
-    h+=`<tr>${P.rfs.map(f=>`<th class="corner">${fh(f)}</th>`).join('')}<th class="num measure" colspan="${P.colKeys.length}">${esc(measureName(P))}</th></tr>`;
   } else {
-    h+=`<tr>${P.rfs.map(f=>`<th class="corner">${fh(f)}</th>`).join('')}<th class="num">${esc(measureName(P))}</th></tr>`;
+    h+=`<tr>${P.rfs.map(f=>`<th class="corner">${fh(f)}</th>`).join('')}<th class="num measure-h">${esc(measureName(P))}</th></tr>`;
   }
   h+='</thead><tbody>';
   let prev=[];
   P.rowKeys.forEach(r=>{ const parts=P.rowParts(r); let diff=parts.findIndex((x,i)=>x!==prev[i]); if(diff<0)diff=parts.length; prev=parts;
     h+=`<tr class="${diff===0&&nr>1?'grp-start':''}">${parts.map((x,i)=>`<th class="rowh ${i<diff?'rep':''}">${i<diff?'':esc(labelOf(P.rfs[i],x))}</th>`).join('')}${nc?P.colKeys.map(c=>cell(P.value(r,c),r,c)).join(''):''}<td class="num total">${fmt(P.rowTotal(r),P.agg)}${sub(r,null)}</td></tr>`; });
-  h+=`<tr class="total"><td colspan="${nr}">Total</td>${nc?P.colKeys.map(c=>`<td class="num">${fmt(P.colTotal(c),P.agg)}${sub(null,c)}</td>`).join(''):''}<td class="num">${fmt(P.grand,P.agg)}${sub(null,null)}</td></tr></tbody></table>`;
+  h+=`<tr class="total"><td colspan="${nr}">Total</td>${nc?P.colKeys.map(c=>`<td class="num${gs.has(c)?' gs':''}">${fmt(P.colTotal(c),P.agg)}${sub(null,c)}</td>`).join(''):''}<td class="num">${fmt(P.grand,P.agg)}${sub(null,null)}</td></tr></tbody></table>`;
   return h;
 }
 function renderPivot(){ $('#pivotTable').innerHTML=pivotHtml(computePivot(),false); }
