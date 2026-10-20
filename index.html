@@ -20,17 +20,18 @@
   --font-body:"Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --r:10px;
+  --side:#e9efec; --side-fg:#18211e; --side-muted:#5f6e69; --side-hover:#dde6e1;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#111715; --surface:#19211e; --sunk:#141b19; --fg:#e4ebe8; --muted:#97a6a1; --line:#2b3632;
   --accent:#4fc4a6; --accent-fg:#0b1512; --accent-soft:#1d3a33; --danger:#f0786d;
   --c1:#4fc4a6; --c2:#f0a35a; --c3:#7ea7ec; --c4:#e07fae; --c5:#b3c95a; --c6:#a798e8; --ok:#5ccf8a; --late:#f0786d; --warn:#e3b341;
-  color-scheme:dark; } }
+   --side:#0c1210; --side-fg:#dfe7e4; --side-muted:#8a9a95; --side-hover:#17201d; color-scheme:dark; } }
 :root[data-theme="dark"]{
   --bg:#111715; --surface:#19211e; --sunk:#141b19; --fg:#e4ebe8; --muted:#97a6a1; --line:#2b3632;
   --accent:#4fc4a6; --accent-fg:#0b1512; --accent-soft:#1d3a33; --danger:#f0786d;
   --c1:#4fc4a6; --c2:#f0a35a; --c3:#7ea7ec; --c4:#e07fae; --c5:#b3c95a; --c6:#a798e8; --ok:#5ccf8a; --late:#f0786d; --warn:#e3b341;
-  color-scheme:dark; }
+   --side:#0c1210; --side-fg:#dfe7e4; --side-muted:#8a9a95; --side-hover:#17201d; color-scheme:dark; }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -354,34 +355,178 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
 .due-bar label{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
 .due-bar input{width:auto}
 @media (prefers-reduced-motion:no-preference){.panel{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}}
+/* ===== app shell: sidebar + main ===== */
+.app{display:grid;grid-template-columns:264px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;height:100dvh;background:var(--side);color:var(--side-fg);display:flex;flex-direction:column;gap:14px;padding:20px 14px 14px;border-right:1px solid var(--line);overflow:hidden}
+.brand{display:flex;gap:12px;align-items:center;padding:2px 6px}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:22px;height:22px}
+.brand b{font-family:var(--font-display);font-size:1.15rem;display:block;letter-spacing:-.01em}
+.brand small{color:var(--side-muted);font-size:.78rem}
+.find{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--side-muted)}
+.find svg{width:18px;height:18px;flex:none}
+.find input{border:none!important;background:transparent!important;padding:9px 0!important;box-shadow:none!important}
+#nav{flex:1;overflow-y:auto;margin:0 -4px;padding:0 4px}
+.nav-g{display:flex;flex-direction:column;gap:2px;padding-bottom:8px}
+.nav-h{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--side-muted);padding:10px 12px 6px}
+.nav-i{font:inherit;display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;border:none;background:transparent;color:var(--side-fg);cursor:pointer;text-align:left;font-size:.92rem;width:100%}
+.nav-i svg{width:20px;height:20px;flex:none;opacity:.8}
+.nav-i:hover{background:var(--side-hover)}
+.nav-i[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav-i[aria-current="page"] svg{opacity:1}
+.nav-c{margin-left:auto;font-size:.7rem;font-weight:700;background:var(--accent);color:var(--accent-fg);border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums}
+.nav-empty{color:var(--side-muted);font-size:.85rem;padding:8px 12px}
+.me{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center;border-top:1px solid var(--line);padding:14px 4px 0}
+.av{width:40px;height:40px;border-radius:50%;background:var(--sunk);border:1px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:.82rem}
+.me-t{min-width:0}
+.me-t b{display:block;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-t small{color:var(--side-muted);font-size:.8rem}
+.me-sw{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;font-size:.7rem;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--side-muted)}
+.me-sw select{font-family:var(--font-body);font-size:.82rem;padding:6px 8px;text-transform:none;letter-spacing:0}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.topbar .spacer{flex:1}
+.crumb{font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{display:none;place-items:center;width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;flex:none}
+.iconbtn svg{width:20px;height:20px}
+.scrim{display:none}
+.wrap{width:100%}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:min(290px,86vw);z-index:40;transform:translateX(-102%);transition:transform .2s ease;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-left:max(14px,env(safe-area-inset-left,0px));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 0 40px rgba(0,0,0,.25)}
+  body.nav-open .side{transform:none}
+  body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:35}
+  body.nav-open{overflow:hidden}
+  .iconbtn{display:inline-grid}
+  .topbar .pill{display:none}
+}
+#resetBtn .short{display:none}
+@media (max-width:600px){#resetBtn .long{display:none}#resetBtn .short{display:inline}}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+
+/* ===== form builder: form picker ===== */
+.form-pick-row{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end}
+.form-pick{flex:1 1 320px;max-width:460px}
+.form-pick-meta{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:.86rem;color:var(--muted);padding-bottom:9px}
+.fpop-item.cur{background:var(--accent-soft)}
+.fpop-item input[type=radio]{accent-color:var(--accent);margin:0}
+
+/* ===== save + assign charts ===== */
+.save-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.save-row .fld{flex:1 1 280px;max-width:520px}
+.mode-row{display:flex;flex-wrap:wrap;gap:8px}
+.mode-row input{accent-color:var(--accent);margin:0}
+.tag{display:inline-flex;align-items:center;gap:2px}
+.tag-x{font:inherit;border:none;background:transparent;color:var(--muted);cursor:pointer;padding:0 2px;margin-left:2px;line-height:1;font-size:.9rem;border-radius:4px}
+.tag-x:hover{color:var(--danger);background:var(--sunk)}
+
+/* ===== shared bits ===== */
+.sched-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px}
+.zgroup.ms-g{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.zgroup.ms-g .linkbtn{font-size:.72rem;text-transform:none;letter-spacing:0;padding:2px 6px}
+.dl-t{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+label.mini{display:flex;flex-direction:column;gap:4px;font-size:.75rem;font-weight:600;color:var(--muted)}
+label.mini input,label.mini select{width:auto;padding:6px 8px;font-size:.86rem}
+.tbl-wrap.fit{width:fit-content;max-width:100%}
+
+/* ===== schedule set up: deadlines ===== */
+.dl-chips{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow-y:auto;padding:2px}
+.dl{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px 3px 2px 10px;font-size:.8rem;background:var(--surface);font-variant-numeric:tabular-nums}
+.dl.past{opacity:.6}
+.dl .opt-x{width:22px;height:22px;font-size:.95rem}
+.dl-tools{align-items:start;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin-top:4px}
+.dl-box{display:flex;flex-direction:column;gap:8px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.dl-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.dl-row input[type=date],.dl-row input[type=time]{width:auto}
+
+/* ===== schedules calendar ===== */
+.cal-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:1180px){.cal-layout{grid-template-columns:1fr}}
+.cal-card{display:flex;flex-direction:column;gap:12px}
+.cal-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-bar h3{font-size:1.2rem}
+.cal-nav{display:flex;gap:6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.cal-w{background:var(--sunk);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 8px}
+.cal-c{background:var(--surface);min-height:104px;padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cal-c.out{background:var(--sunk)}
+.cal-d{font-size:.76rem;font-weight:600;color:var(--muted);width:24px;height:24px;display:grid;place-items:center;border-radius:50%;font-variant-numeric:tabular-nums}
+.cal-c.today .cal-d{background:var(--accent);color:var(--accent-fg)}
+.ev{font:inherit;font-size:.72rem;line-height:1.3;text-align:left;border:none;border-left:3px solid var(--c3);border-radius:4px;padding:3px 6px;background:color-mix(in srgb,var(--c3) 14%,transparent);color:var(--fg);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+.ev{display:block;min-width:0;max-width:100%}
+.ev-n{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev-t{font-family:var(--font-mono);font-size:.66rem;color:var(--muted)}
+.ev.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.ev.overdue{border-color:var(--late);background:color-mix(in srgb,var(--late) 14%,transparent)}
+.ev.inprog{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.ev.start{border-left-style:dashed;border-color:var(--muted);background:transparent;color:var(--muted)}
+.ev.sel{outline:2px solid var(--accent);outline-offset:1px}
+.ev-bar{display:block;height:3px;background:var(--line);border-radius:2px;margin-top:3px;overflow:hidden}
+.ev-bar i{display:block;height:100%;background:var(--warn)}
+.cal-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.lg{white-space:nowrap}
+.lg::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c3)}
+.lg.done::before{background:var(--ok)} .lg.overdue::before{background:var(--late)} .lg.inprog::before{background:var(--warn)}
+.lg.start::before{background:transparent;border:1.5px dashed var(--muted)}
+@media (max-width:640px){.cal-c{min-height:62px;padding:2px}.ev{font-size:0;padding:0;height:8px;border-left-width:0;border-radius:3px}.ev .ev-bar{display:none}.ev.done{background:var(--ok)}.ev.overdue{background:var(--late)}.ev.inprog{background:var(--warn)}.ev.open{background:var(--c3)}.ev.start{background:transparent;border:1px dashed var(--muted);height:6px}.cal-w{padding:4px;font-size:.62rem;text-align:center}}
+.cal-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.occ{display:flex;flex-direction:column;gap:14px}
+.occ-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.occ-head .eyebrow{margin-bottom:2px}
+.occ-meta{font-size:.84rem;color:var(--muted)}
+.occ-forms,.occ-prog{display:flex;flex-direction:column;gap:8px}
+.occ-prog{border-top:1px solid var(--line);padding-top:12px}
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.score-row input[type=range]{min-width:0}
+.score-row input[type=number]{width:76px}
+.agenda{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ag{font:inherit;display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);cursor:pointer}
+.ag:hover{border-color:var(--muted)}
+.ag.sel{border-color:var(--accent);background:var(--accent-soft)}
+.ag-d{display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.ag-d small,.ag-m small{color:var(--muted);font-size:.74rem}
+.ag-m{display:flex;flex-direction:column;min-width:0}
+.ag-m b,.ag-m small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== pivot & charts ===== */
+.range-row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding-block:12px}
+.range-row .dl-t{align-self:center}
+.rg-quick{display:flex;flex-wrap:wrap;gap:2px;align-items:center}
+.out{display:flex;flex-direction:column;gap:12px}
+#tab-analysis .controls{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <header class="top">
-    <div>
-      <p class="eyebrow">Prototype for the dev team</p>
-      <h1>PMS KPI Process</h1>
-      <p class="lede">Managers build forms, set submission deadlines and accuracy raters. Employees submit, raters score accuracy. The head pivots each form into a table or chart and assigns it to employees or positions. Data stays in this browser.</p>
+<div class="app">
+  <aside class="side" id="side" aria-label="Main navigation">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span><div><b>PMS KPI</b><small>Performance management</small></div></div>
+    <label class="find" for="navFind"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="navFind" placeholder="Find a page…" autocomplete="off" aria-label="Find a page"></label>
+    <nav id="nav"></nav>
+    <div class="me">
+      <span class="av" id="meAv" aria-hidden="true"></span>
+      <div class="me-t"><b id="meName"></b><small id="mePos"></small></div>
+      <label class="me-sw" for="meSel"><span>Signed in as (demo)</span><select id="meSel"></select></label>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="resetBtn" class="btn ghost">Reset to sample data</button>
-    </div>
-  </header>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="iconbtn" id="menuBtn" aria-label="Open menu"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <span class="crumb"><span class="dim">PMS KPI Process</span><span class="dim" aria-hidden="true"> / </span><b id="crumb"></b></span>
+      <span class="spacer"></span>
+      <span class="pill">Prototype</span>
+      <button id="resetBtn" class="btn ghost small"><span class="long">Reset to sample data</span><span class="short">Reset</span></button>
+    </header>
+    <main class="wrap">
 
-  <div class="steps-scroll">
-    <nav class="steps" role="tablist" aria-label="Workflow steps" id="steps"></nav>
-  </div>
-
-  <main>
-    <!-- 1 BUILD -->
-    <section class="panel" id="tab-build" role="tabpanel" hidden>
+    <!-- FORM BUILDER -->
+    <section class="panel" id="tab-build" hidden>
       <div class="panel-head">
-        <div><h2>Build the form</h2><p>Every question becomes a column in Responses and a field you can pivot on. Deadlines, assignees and reviewers are set in Schedule Set Up, outside the form.</p></div>
+        <div><h2>Form Builder</h2><p>Every question becomes a column in Responses and a field you can pivot on. Deadlines are set in Schedule Set Up and accuracy raters in Accuracy Set Up.</p></div>
         <button class="btn" id="newForm">+ New form</button>
       </div>
-      <div class="form-cards" id="formCards" role="list"></div>
+      <div class="card form-pick-row" id="formCards"></div>
       <div class="panel-head editing-head">
         <div><p class="eyebrow">Editing</p><h2 id="editingTitle"></h2></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost small" id="dupForm">Duplicate form</button><button class="btn ghost small" id="delForm">Delete form</button><button class="btn ghost" data-goto="schedule">Schedule it →</button></div>
@@ -395,25 +540,25 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
       <div class="card sys-card">
         <div><h3>Recorded automatically</h3><p class="lede" style="margin-top:2px;font-size:.88rem">Respondents never see these. They are saved with every submission and are available in the pivot.</p></div>
         <div class="sys-list">
-          <div class="sys-item"><b>Task, assignee, reviewer</b><span>Taken from the schedule the form was submitted under.</span></div>
-          <div class="sys-item"><b>Submitted at</b><span>Date and time of submission. Pivot by day, week or month.</span></div>
-          <div class="sys-item"><b>Timeliness</b><span>On time or Late, against the task's End time stamp.</span></div>
-          <div class="sys-item"><b>Completeness %</b><span>Calculated in the pivot: forms submitted ÷ forms required by the schedule.</span></div>
+          <div class="sys-item"><b>Task, deadline, reviewers</b><span>Taken from the schedule and deadline the form was submitted for.</span></div>
+          <div class="sys-item"><b>Submitted at</b><span>Date and time of submission.</span></div>
+          <div class="sys-item"><b>Timeliness</b><span>On time or Late, against that deadline's end time stamp.</span></div>
+          <div class="sys-item"><b>Completeness %</b><span>Calculated in the pivot: submissions ÷ submissions required.</span></div>
         </div>
       </div>
     </section>
 
-    <!-- 2 SCHEDULE SET UP -->
-    <section class="panel" id="tab-schedule" role="tabpanel" hidden>
+    <!-- SCHEDULE SET UP -->
+    <section class="panel" id="tab-schedule" hidden>
       <div class="panel-head">
-        <div><h2>Schedule Set Up</h2><p>Set the deadline for submissions: when it ends, who must submit, who reviews, and which forms they fill in.</p></div>
+        <div><h2>Schedule Set Up</h2><p>Set the deadlines for submissions. One schedule can hold many deadlines, such as KPI Reports due Oct 2, Oct 9 and Oct 16.</p></div>
         <button class="btn" id="newSched">+ New schedule</button>
       </div>
       <div class="card sched-editor" id="schedEditor" hidden></div>
       <div class="tbl-wrap" id="schedTable"></div>
       <details class="dev people-card" id="peopleCard">
         <summary>People list (<span id="peopleCount"></span>)</summary>
-        <p>Assignees and reviewers are picked from this list. In the real system it comes from the employee directory.</p>
+        <p>Assignees, reviewers, ratees and raters are picked from this list. In the real system it comes from the employee directory.</p>
         <div class="people-list" id="peopleList"></div>
         <div class="people-add">
           <label class="fld" for="pName">Name<input type="text" id="pName" placeholder="Full name"></label>
@@ -427,36 +572,46 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
     </section>
 
     <!-- ACCURACY SET UP -->
-    <section class="panel" id="tab-accuracy" role="tabpanel" hidden>
+    <section class="panel" id="tab-accuracy" hidden>
       <div class="panel-head">
-        <div><h2>Accuracy Set Up</h2><p>Pick which existing forms are rated for accuracy, who is rated (Ratee), on which KPI, and who rates them (Rater). The rater is separate from Reviewer 1.</p></div>
+        <div><h2>Accuracy Set Up</h2><p>Pick which forms are rated for accuracy, who is rated (Ratee), on which KPI, and who rates them (Raters). Raters are separate from the schedule's reviewers.</p></div>
         <button class="btn" id="newAcc">+ New accuracy set up</button>
       </div>
       <div class="card sched-editor" id="accEditor" hidden></div>
       <div class="tbl-wrap" id="accTable"></div>
       <div class="card flow">
         <h3>Workflow</h3>
-        <ol class="flow-steps"><li><b>Ratee submits</b> the form in Collect, as usual.</li><li><b>Rater gets it</b> in their <i>To rate</i> list in Collect.</li><li><b>Rater scores accuracy</b> from 0 to 100% and can add a comment.</li><li><b>Accuracy % appears</b> in Responses and as a value in the pivot.</li></ol>
+        <ol class="flow-steps"><li><b>Ratee submits</b> the form from Schedules.</li><li><b>Raters get it</b> in their <i>To rate</i> page.</li><li><b>One rater scores accuracy</b> from 0 to 100% and can add a comment.</li><li><b>Accuracy % appears</b> in Responses and in Pivot &amp; Charts.</li></ol>
       </div>
     </section>
 
-    <!-- 2 COLLECT -->
-    <section class="panel" id="tab-collect" role="tabpanel" hidden>
-      <div class="panel-head">
-        <div><h2>Fill and submit</h2><p>This is what respondents see: the tasks assigned to them, each with its deadline and forms. Each submission is saved as one row.</p></div>
-        <label class="fld inline" for="collectWho">Signed in as<select id="collectWho"></select></label>
+    <!-- SCHEDULES (calendar) -->
+    <section class="panel" id="tab-schedules" hidden>
+      <div class="panel-head"><div><h2>Schedules</h2><p id="calSub"></p></div></div>
+      <div class="cal-layout">
+        <div class="card cal-card">
+          <div class="cal-bar"><h3 id="calTitle"></h3>
+            <div class="cal-nav"><button type="button" class="btn ghost small" id="calPrev" aria-label="Previous month">‹</button><button type="button" class="btn ghost small" id="calToday">Today</button><button type="button" class="btn ghost small" id="calNext" aria-label="Next month">›</button></div></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend"><span class="lg open">Not started</span><span class="lg inprog">In progress</span><span class="lg done">Submitted</span><span class="lg overdue">Missed</span><span class="lg start">Start date</span></div>
+        </div>
+        <div class="cal-side">
+          <div class="card occ" id="occPanel"></div>
+          <div class="card"><h3>Upcoming</h3><div class="agenda" id="agenda"></div></div>
+        </div>
       </div>
-      <div class="task-list" id="taskList"></div>
       <form class="sheet" id="fillForm" novalidate hidden></form>
-      <div class="rate-wrap" id="rateWrap" hidden>
-        <h3 class="rate-head" id="rateHead">To rate</h3>
-        <div class="tbl-wrap" id="rateList"></div>
-        <div class="sheet" id="rateSheet" hidden></div>
-      </div>
     </section>
 
-    <!-- 3 RESPONSES -->
-    <section class="panel" id="tab-responses" role="tabpanel" hidden>
+    <!-- TO RATE -->
+    <section class="panel" id="tab-rate" hidden>
+      <div class="panel-head"><div><h2>To rate</h2><p id="rateSub"></p></div></div>
+      <div class="tbl-wrap" id="rateList"></div>
+      <div class="sheet" id="rateSheet" hidden></div>
+    </section>
+
+    <!-- RESPONSES -->
+    <section class="panel" id="tab-responses" hidden>
       <div class="panel-head">
         <div><h2>Responses</h2><p id="respSub"></p></div>
         <label class="fld inline" for="respForm">Form<select id="respForm"></select></label>
@@ -464,73 +619,62 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
       <div class="tbl-wrap" id="respTable"></div>
     </section>
 
-    <!-- 4 PIVOT -->
-    <section class="panel" id="tab-pivot" role="tabpanel" hidden>
-      <div class="panel-head">
-        <div><h2>Pivot table</h2><p>Choose one form, then pick what groups the rows, what splits the columns, and what to calculate in each cell. Submitted at, Timeliness, Completeness % and On-time rate % are available alongside the form questions.</p></div>
-      </div>
-      <div class="card picker">
-        <div class="picker-head"><h3>Form</h3><span class="ctl-note" id="pickerNote"></span>
-          </div>
-        <div class="pick-list" id="formPicker" role="group" aria-label="Form to pivot"></div>
-      </div>
+    <!-- PIVOT & CHARTS -->
+    <section class="panel" id="tab-analysis" hidden>
+      <div class="panel-head"><div><h2>Pivot &amp; Charts</h2><p>Pick a form, group its responses into a pivot, then show it as a table or a chart and assign it to people.</p></div></div>
       <div class="card controls" id="pvCtl">
+        <label class="fld" for="pvForm">Form<select id="pvForm"></select></label>
         <div class="fld"><span id="lblRows">Rows</span><button type="button" class="ms" id="pvRowsBtn" data-zonebtn="rows" aria-labelledby="lblRows pvRowsTxt" aria-haspopup="dialog"><span class="ms-txt" id="pvRowsTxt"></span><svg class="ms-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
         <div class="fld"><span id="lblCols">Columns</span><button type="button" class="ms" id="pvColsBtn" data-zonebtn="cols" aria-labelledby="lblCols pvColsTxt" aria-haspopup="dialog"><span class="ms-txt" id="pvColsTxt"></span><svg class="ms-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
         <label class="fld" for="pvVal">Values<select id="pvVal"></select></label>
-        <label class="fld" for="pvGran" id="granWrap">Group dates by<select id="pvGran">
-          <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option>
-        </select></label>
+        <label class="fld" for="pvGran">Group dates by<select id="pvGran"></select></label>
         <label class="fld" for="pvAgg">Calculate<select id="pvAgg">
           <option value="sum">Sum</option><option value="avg">Average</option><option value="min">Minimum</option><option value="max">Maximum</option>
         </select></label>
       </div>
+      <div class="card range-row">
+        <span class="dl-t">Date range</span>
+        <label class="mini" for="rgField">On<select id="rgField"></select></label>
+        <label class="mini" for="rgFrom">From<input type="date" id="rgFrom"></label>
+        <label class="mini" for="rgTo">To<input type="date" id="rgTo"></label>
+        <div class="rg-quick"><button type="button" class="linkbtn" data-rgq="last30">Last 30 days</button><button type="button" class="linkbtn" data-rgq="thisMonth">This month</button><button type="button" class="linkbtn" data-rgq="thisQuarter">This quarter</button><button type="button" class="linkbtn" data-rgq="thisYear">This year</button><button type="button" class="linkbtn del" id="rgClear">Clear range</button></div>
+      </div>
       <p class="ctl-note" id="pvFilters"></p>
       <p class="ctl-note" id="pvNote"></p>
-      <div class="tbl-wrap" id="pivotTable"></div>
-      <div class="pivot-actions">
-        <button class="btn ghost small" id="copyCsv">Copy pivot as CSV</button>
-        <button class="btn" data-goto="viz">Choose a chart →</button>
-      </div>
-    </section>
-
-    <!-- 5 VISUALIZE -->
-    <section class="panel" id="tab-viz" role="tabpanel" hidden>
-      <div class="panel-head">
-        <div><h2>Visualize</h2><p>The chart is drawn from the current pivot. Change the pivot and the chart follows.</p></div>
-        <button class="btn ghost" data-goto="pivot">← Edit pivot</button>
-      </div>
-      <div class="viz-summary" id="vizSummary"></div>
-      <div class="tiles" id="tiles" role="group" aria-label="Chart type"></div>
-      <div class="card">
+      <div class="tiles" id="tiles" role="group" aria-label="Show as"></div>
+      <div class="card out">
+        <div class="viz-summary" id="vizSummary"></div>
+        <div class="tbl-wrap" id="pivotTable"></div>
         <div class="chart-wrap" id="chartBox"><canvas id="chartCanvas" aria-label="Chart of the pivot table" role="img"></canvas></div>
         <p class="empty" id="chartMsg" hidden></p>
-        <div id="vizTable" hidden></div>
+        <div><button class="btn ghost small" id="copyCsv">Copy pivot as CSV</button></div>
       </div>
+      <div class="card assign" id="saveCard"></div>
       <div class="card assign" id="assignCard"></div>
       <div class="saved" id="savedViews"></div>
       <details class="dev">
-        <summary>For developers: the data at each step</summary>
-        <p>The app keeps three objects. The <b>form schema</b> defines questions. Each <b>response</b> stores answers keyed by question id. The <b>pivot config</b> plus <b>chart type</b> is all the visualization needs, so it can be saved as a "view" alongside the form.</p>
+        <summary>For developers: the data behind this page</summary>
+        <p>A schedule holds a list of deadlines. Each response points to one schedule and one deadline. Progress notes are keyed by schedule, deadline and person. A saved chart is just the pivot config plus a chart type and who it is assigned to.</p>
         <pre id="devJson"></pre>
       </details>
     </section>
+
     <!-- MY CHARTS -->
-    <section class="panel" id="tab-mine" role="tabpanel" hidden>
-      <div class="panel-head">
-        <div><h2>My charts</h2><p id="mineSub"></p></div>
-        <label class="fld inline" for="mineWho">Viewing as<select id="mineWho"></select></label>
-      </div>
+    <section class="panel" id="tab-mine" hidden>
+      <div class="panel-head"><div><h2>My charts</h2><p id="mineSub"></p></div></div>
       <div class="mine-grid" id="mineGrid"></div>
     </section>
-  </main>
-  <div class="toast" id="toast" hidden></div>
-  <div class="fpop" id="fpop" hidden role="dialog" aria-label="Filter values"></div>
+
+    </main>
+  </div>
 </div>
+<div class="toast" id="toast" hidden></div>
+<div class="fpop" id="fpop" hidden role="dialog" aria-label="Filter values"></div>
+<div class="fpop" id="mspop" hidden role="dialog" aria-label="Choose options"></div>
 
 <script>
 (function(){
-const LS_KEY='pms-kpi-process-v11';
+const LS_KEY='pms-kpi-process-v12';
 /* ---------- question types ---------- */
 const TYPE_GROUPS=[
  ['Text',[['text','Short answer'],['paragraph','Paragraph'],['email','Email'],['phone','Phone number'],['url','Link']]],
@@ -545,15 +689,13 @@ const CHOICE_TYPES=['radio','checkbox','select'];
 const GRID_TYPES=['mcgrid','cbgrid'];
 const NUMERIC_TYPES=['number','scale','rating'];
 const ACCEPT={any:['Any file',''],pdf:['PDF','.pdf'],image:['Image','image/*'],doc:['Document (PDF, Word)','.pdf,.doc,.docx'],sheet:['Spreadsheet (Excel, CSV)','.xls,.xlsx,.csv'],slides:['Presentation','.ppt,.pptx,.pdf']};
-const STEPS=[['build','Build form','Questions'],['schedule','Schedule Set Up','Deadlines'],['accuracy','Accuracy Set Up','Ratee & rater'],['collect','Collect','Fill & submit'],['responses','Responses','Stored rows'],['pivot','Pivot','Group & total'],['viz','Visualize','Chart or table'],['mine','My charts','Assigned to me']];
-const VIZ=[
+const VIZ=[ ['table','Table','<rect x="2" y="3" width="30" height="20" fill="none" stroke="currentColor" stroke-width="2"/><line x1="2" y1="10" x2="32" y2="10" stroke="currentColor" stroke-width="2"/><line x1="12" y1="3" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>'],
  ['bar','Bar','<rect x="3" y="12" width="6" height="12"/><rect x="14" y="5" width="6" height="19"/><rect x="25" y="9" width="6" height="15"/>'],
  ['stacked','Stacked bar','<rect x="4" y="14" width="8" height="10"/><rect x="4" y="6" width="8" height="7" opacity=".5"/><rect x="20" y="10" width="8" height="14"/><rect x="20" y="3" width="8" height="6" opacity=".5"/>'],
  ['hbar','Horizontal bar','<rect x="2" y="2" width="22" height="5"/><rect x="2" y="10" width="30" height="5"/><rect x="2" y="18" width="14" height="5"/>'],
  ['line','Line','<polyline points="2,20 10,12 18,15 26,5 32,8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>'],
  ['pie','Pie','<path d="M17 13 L17 2 A11 11 0 1 1 7 18 Z"/><path d="M15 11 L5 16 A11 11 0 0 1 15 0 Z" opacity=".5"/>'],
  ['doughnut','Doughnut','<circle cx="17" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="40 17"/>'],
- ['table','Table','<rect x="2" y="3" width="30" height="20" fill="none" stroke="currentColor" stroke-width="2"/><line x1="2" y1="10" x2="32" y2="10" stroke="currentColor" stroke-width="2"/><line x1="12" y1="3" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>']
 ];
 const SYS=[
  {id:'sys_submitted',label:'Submitted at',type:'timestamp',system:true},
@@ -591,10 +733,13 @@ function defaultsFor(type,f){
 }
 
 /* ---------- data model ----------
-   people:    { id, name, dept }
-   forms:     { id, title, description, fields[] }                        built by managers
-   schedules: { id, end, name, description, assignees[], reviewer, formIds[] }   Schedule Set Up
-   responses: { id, scheduleId, formId, by, submittedAt, values }           one per form submitted */
+   people:    { id, name, dept, pos }
+   forms:     { id, title, description, fields[] }
+   schedules: { id, name, description, deadlines[ISO], assignees[], reviewers[], formIds[] }   Schedule Set Up
+   responses: { id, scheduleId, due, formId, by, submittedAt, values, ratings? }               one per form submitted for one deadline
+   progress:  { "scheduleId|due|personId": { start, pct, notes, at } }                         entered by the employee in Schedules
+   accuracy:  { id, ratees[], kpi, raters[], formIds[] }                                        Accuracy Set Up
+   views:     { id, name, config, viz, people[], positions[], updatedAt }                       saved charts */
 const formById=id=>state.forms.find(F=>F.id===id);
 const curForm=()=>formById(state.activeFormId)||state.forms[0];
 const formOf=r=>formById(r.formId);
@@ -603,30 +748,37 @@ const personById=id=>state.people.find(p=>p.id===id);
 const personName=id=>personById(id)?.name||'(removed person)';
 const personDept=id=>personById(id)?.dept||'(none)';
 const nowIso=()=>localIso(new Date());
-function recordSystem(values, submittedAt, sch){
-  const lateMs=new Date(submittedAt)-new Date(sch.end);
+const occKey=(sid,due)=>sid+'|'+due;
+function recordSystem(values, submittedAt, due){
+  const lateMs=new Date(submittedAt)-new Date(due);
   values.sys_submitted=submittedAt;
   values.sys_timeliness=lateMs>0?'Late':'On time';
   values.sys_hours_late=lateMs>0?Math.round(lateMs/36e5*10)/10:0;
   return values;
 }
-const required=s=>s.assignees.length*s.formIds.length;
-const submittedKeys=s=>new Set(state.responses.filter(r=>r.scheduleId===s.id&&s.assignees.includes(r.by)&&s.formIds.includes(r.formId)).map(r=>r.by+'|'+r.formId));
+const required=s=>s.assignees.length*s.formIds.length*s.deadlines.length;
+const submittedKeys=s=>new Set(state.responses.filter(r=>r.scheduleId===s.id&&s.assignees.includes(r.by)&&s.formIds.includes(r.formId)&&s.deadlines.includes(r.due)).map(r=>r.due+'|'+r.by+'|'+r.formId));
+const occDone=(s,due,by)=>s.formIds.every(fid=>state.responses.some(r=>r.scheduleId===s.id&&r.due===due&&r.by===by&&r.formId===fid));
 function schedStatus(s){
-  const done=submittedKeys(s).size, req=required(s);
-  if(req&&done>=req)return 'done';
-  return s.end<nowIso()?'overdue':'open';
+  const keys=submittedKeys(s), now=nowIso();
+  if(required(s)&&keys.size>=required(s))return 'done';
+  const missingPast=s.deadlines.some(d=>d<now&&s.assignees.some(by=>s.formIds.some(fid=>!keys.has(d+'|'+by+'|'+fid))));
+  return missingPast?'overdue':'open';
 }
-const SCHED_TXT={done:'Complete',overdue:'Past due',open:'Open'};
+const SCHED_TXT={done:'Complete',overdue:'Has missed deadlines',open:'On track'};
 const schedBadge=st=>`<span class="badge ${st==='done'?'ok':st==='overdue'?'late':'sched'}">${SCHED_TXT[st]}</span>`;
+const nextDue=s=>s.deadlines.find(d=>d>=nowIso());
 
 /* ---------- sample data ---------- */
 function sampleState(){
-  const P=(id,name,dept,miss,late,pos)=>({id,name,dept,miss,late,pos});
-  const roster=[P('p_ana','Ana Santos','Finance',.02,.05,'Accountant'),P('p_ben','Ben Reyes','Finance',.1,.15,'Accountant'),P('p_carlo','Carlo Cruz','Human Resources',.05,.25,'HR Officer'),P('p_dana','Dana Bautista','Human Resources',.25,.1,'HR Officer'),
-    P('p_elle','Elle Garcia','Operations',.08,.35,'Operations Supervisor'),P('p_franco','Franco Mendoza','Operations',.3,.4,'Operations Staff'),P('p_gia','Gia Torres','Sales',.12,.2,'Sales Executive'),P('p_hector','Hector Flores','Sales',.04,.5,'Sales Executive'),
-    P('p_rosa','Rosa Villanueva','Management',0,0,'Department Head'),P('p_marco','Marco Dizon','Management',0,0,'Department Head'),P('p_lea','Lea Ramos','Quality Assurance',0,0,'QA Analyst')];
-  const staff=roster.slice(0,8), field=staff.filter(p=>p.dept==='Sales'||p.dept==='Operations');
+  const P=(id,name,dept,pos,miss,late)=>({id,name,dept,pos,miss,late});
+  const roster=[P('p_ana','Ana Santos','Finance','Accountant',.02,.05),P('p_ben','Ben Reyes','Finance','Accountant',.12,.18),
+    P('p_carlo','Carlo Cruz','Human Resources','HR Officer',.05,.25),P('p_dana','Dana Bautista','Human Resources','HR Officer',.25,.1),
+    P('p_elle','Elle Garcia','Operations','Operations Supervisor',.08,.35),P('p_franco','Franco Mendoza','Operations','Operations Staff',.3,.4),
+    P('p_gia','Gia Torres','Sales','Sales Executive',.12,.2),P('p_hector','Hector Flores','Sales','Sales Executive',.04,.5),
+    P('p_rosa','Rosa Villanueva','Management','Department Head',0,0),P('p_marco','Marco Dizon','Management','Department Head',0,0),
+    P('p_lea','Lea Ramos','Quality Assurance','QA Analyst',0,0)];
+  const staff=roster.slice(0,8), field=staff.filter(p=>p.dept==='Sales'||p.dept==='Operations'), ids=a=>a.map(p=>p.id);
   const tasks=['Client calls','Reports prepared','Meetings attended','Training','Process improvement'];
   const forms=[
     {id:'form_kpi',title:'Daily KPI Report',description:'Your KPI results with supporting evidence.',fields:[
@@ -648,14 +800,11 @@ function sampleState(){
       {id:'f_blockers',label:'Blockers',type:'checkbox',options:['Waiting on approval','System issues','Lacking resources','None'],required:false},
       {id:'f_wins',label:'Accomplishments this week',type:'paragraph',required:true}]}
   ];
-  const ids=a=>a.map(p=>p.id);
+  const fridays=(from,to,time)=>{ const out=[]; for(let d=from;d<=to;d=addDays(d,7))out.push(`${d}T${time}`); return out; };
   const schedules=[
-    {id:'s_sep',end:'2026-09-30T17:00',name:'September month-end KPI',description:'Month-end KPI results and team update for September.',assignees:ids(staff),reviewer:'p_rosa',formIds:['form_kpi','form_update']},
-    {id:'s_v1005',end:'2026-10-09T18:00',name:'Client visits – week of Oct 5',description:'Field teams log every client visit for the week.',assignees:ids(field),reviewer:'p_marco',formIds:['form_visit']},
-    {id:'s_u1009',end:'2026-10-09T17:00',name:'Weekly update – Oct 9',description:'Weekly KPI and team update.',assignees:ids(staff),reviewer:'p_rosa',formIds:['form_update','form_kpi']},
-    {id:'s_v1012',end:'2026-10-16T18:00',name:'Client visits – week of Oct 12',description:'Visit log plus KPI results for the field teams.',assignees:ids(field),reviewer:'p_marco',formIds:['form_visit','form_kpi']},
-    {id:'s_u1016',end:'2026-10-16T17:00',name:'Weekly update – Oct 16',description:'Weekly KPI and team update.',assignees:ids(staff),reviewer:'p_rosa',formIds:['form_update','form_kpi']},
-    {id:'s_u1023',end:'2026-10-23T17:00',name:'Weekly update – Oct 23',description:'Weekly KPI and team update.',assignees:ids(staff),reviewer:'p_rosa',formIds:['form_update','form_kpi']}
+    {id:'s_kpi',name:'KPI Reports',description:'Weekly KPI results with evidence, due every Friday.',deadlines:fridays('2026-09-25','2026-11-06','17:00'),assignees:ids(staff),reviewers:['p_rosa'],formIds:['form_kpi']},
+    {id:'s_update',name:'Weekly Team Update',description:'Short weekly update for the department heads.',deadlines:fridays('2026-10-02','2026-10-30','17:00'),assignees:ids(staff),reviewers:['p_rosa','p_marco'],formIds:['form_update']},
+    {id:'s_visits',name:'Client Visit Log',description:'Field teams log every client visit for the week.',deadlines:['2026-10-09T18:00','2026-10-16T18:00','2026-10-23T18:00'],assignees:ids(field),reviewers:['p_marco'],formIds:['form_visit']}
   ];
   let seed=20261019; const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
   const pick=a=>a[Math.floor(rnd()*a.length)];
@@ -672,45 +821,51 @@ function sampleState(){
       f_proof:rnd()<.6?[{name:`visit-${day}.jpg`,size:Math.round(300000+rnd()*2500000),type:'image/jpeg'}]:[]};
     return {f_status:pick(['On track','On track','At risk','Delayed']),f_blockers:(()=>{const b=['Waiting on approval','System issues','Lacking resources'].filter(()=>rnd()<.25);return b.length?b:['None'];})(),f_wins:pick(wins)};
   };
-  const now=nowIso(), responses=[];
-  schedules.forEach(s=>s.assignees.forEach(pid=>{ const p=roster.find(x=>x.id===pid);
+  const now=nowIso(), responses=[], progress={};
+  const progNotes=['Collecting figures from the team.','Waiting for the sales report.','Draft done, checking numbers.','Started early this week.'];
+  schedules.forEach(s=>s.deadlines.forEach(due=>s.assignees.forEach(pid=>{ const p=roster.find(x=>x.id===pid);
+    const upcoming=due>now;
+    if(upcoming&&due<shift(now,24*14)&&rnd()<.55){ const start=addDays(due.slice(0,10),-(2+Math.floor(rnd()*4)));
+      if(start<=now.slice(0,10))progress[`${s.id}|${due}|${pid}`]={start,pct:pick([10,25,40,50,60,75]),notes:pick(progNotes),at:shift(now,-(rnd()*30))}; }
     s.formIds.forEach(fid=>{
       let stamp;
-      if(s.end>now){ if(rnd()>.3)return; stamp=shift(now,-(1+rnd()*40)); }
-      else { if(rnd()<p.miss)return; stamp=rnd()<p.late?shift(s.end,1+rnd()*40):shift(s.end,-(1+rnd()*70)); }
-      responses.push({id:uid('r_'),scheduleId:s.id,formId:fid,by:pid,submittedAt:stamp,sample:true,values:recordSystem(valuesFor(fid,p,s.end.slice(0,10)),stamp,s)});
-    }); }));
+      if(upcoming){ if(due>shift(now,24*7)||rnd()>.25)return; stamp=shift(now,-(1+rnd()*20)); }
+      else { if(rnd()<p.miss)return; stamp=rnd()<p.late?shift(due,1+rnd()*40):shift(due,-(1+rnd()*70)); }
+      responses.push({id:uid('r_'),scheduleId:s.id,due,formId:fid,by:pid,submittedAt:stamp,sample:true,values:recordSystem(valuesFor(fid,p,due.slice(0,10)),stamp,due)});
+    }); })));
+  const benNext=schedules[1].deadlines.find(d=>d>now&&!responses.some(r=>r.scheduleId==='s_update'&&r.due===d&&r.by==='p_ben'));
+  if(benNext)progress[`s_update|${benNext}|p_ben`]={start:addDays(now.slice(0,10),-1),pct:40,notes:'Collected wins from the team. Still waiting on the blockers list from IT.',at:shift(now,-3)};
   responses.sort((a,b)=>a.submittedAt.localeCompare(b.submittedAt));
   const accuracy=[
-    {id:'a_report',ratees:ids(staff),kpi:'Report accuracy',rater:'p_lea',formIds:['form_kpi']},
-    {id:'a_target',ratees:ids(field),kpi:'Target computation accuracy',rater:'p_marco',formIds:['form_kpi']}];
+    {id:'a_report',ratees:ids(staff),kpi:'Report accuracy',raters:['p_lea'],formIds:['form_kpi']},
+    {id:'a_target',ratees:ids(field),kpi:'Target computation accuracy',raters:['p_marco','p_lea'],formIds:['form_kpi']}];
   const skill={p_ana:96,p_ben:88,p_carlo:92,p_dana:78,p_elle:90,p_franco:82,p_gia:85,p_hector:94};
   const accNotes=['Target figure did not match the source report.','Evidence link was missing a page.','Actual % was rounded incorrectly.','Wrong KPI category selected.'];
   responses.filter(r=>r.formId==='form_kpi').forEach(r=>accuracy.filter(a=>a.ratees.includes(r.by)).forEach(a=>{
-    if(r.submittedAt>shift(now,-30)&&rnd()<.75)return;
+    if(r.submittedAt>shift(now,-60)&&rnd()<.75)return;
     const sc=Math.max(50,Math.min(100,Math.round(skill[r.by]+(rnd()-.5)*18+(a.id==='a_target'?-3:0))));
-    (r.ratings??={})[a.id]={score:sc,comment:sc<85?pick(accNotes):'',by:a.rater,at:shift(r.submittedAt,6+rnd()*30)};
+    (r.ratings??={})[a.id]={score:sc,comment:sc<85?pick(accNotes):'',by:pick(a.raters),at:shift(r.submittedAt,6+rnd()*30)};
   }));
+  const cfg=(o)=>({formId:'form_kpi',rows:['t_assignee'],cols:[],value:'',agg:'avg',gran:'month',filters:{},range:{field:'t_due',from:'',to:''},...o});
   const views=[
-    {id:'v_complete',name:'Completeness by department and task',config:{formId:'form_kpi',rows:['t_dept','t_assignee'],cols:['t_task'],value:'m_complete',agg:'avg',gran:'week',filters:{}},viz:'table',people:[],positions:['Department Head'],updatedAt:shift(now,-20)},
-    {id:'v_accuracy',name:'Accuracy by KPI',config:{formId:'form_kpi',rows:['t_assignee'],cols:['a_kpi'],value:'m_accuracy',agg:'avg',gran:'week',filters:{}},viz:'bar',people:['p_lea'],positions:['Department Head'],updatedAt:shift(now,-10)},
-    {id:'v_visits',name:'Client visit outcomes',config:{formId:'form_visit',rows:['q:main visit outcome'],cols:[],value:'',agg:'avg',gran:'week',filters:{}},viz:'doughnut',people:['p_marco'],positions:['Sales Executive','Operations Supervisor'],updatedAt:shift(now,-5)}];
-  return {views,viewer:'p_rosa',accuracy,people:roster.map(({id,name,dept,pos})=>({id,name,dept,pos})),forms,schedules,responses,activeFormId:'form_kpi',who:'p_ben',open:null,respFilter:'all',editing:null,
-    pivot:{formId:'form_kpi',rows:['t_dept','t_assignee'],cols:['t_task'],value:'m_complete',agg:'avg',gran:'week',filters:{}},viz:'table',tab:'schedule'};
+    {id:'v_complete',name:'Completeness by month',config:cfg({rows:['t_dept','t_assignee'],cols:['t_due'],value:'m_complete',gran:'month'}),viz:'table',people:[],positions:['Department Head'],updatedAt:shift(now,-20)},
+    {id:'v_accuracy',name:'Accuracy by KPI',config:cfg({rows:['t_assignee'],cols:['a_kpi'],value:'m_accuracy'}),viz:'bar',people:['p_lea'],positions:['Department Head'],updatedAt:shift(now,-10)},
+    {id:'v_visits',name:'Client visit outcomes',config:cfg({formId:'form_visit',rows:['q:main visit outcome']}),viz:'doughnut',people:['p_marco'],positions:['Sales Executive','Operations Supervisor'],updatedAt:shift(now,-5)}];
+  return {people:roster.map(({id,name,dept,pos})=>({id,name,dept,pos})),forms,schedules,responses,progress,accuracy,views,
+    activeFormId:'form_kpi',who:'p_ben',open:null,respFilter:'form_kpi',editing:null,cal:now.slice(0,7),sel:null,
+    pivot:cfg({rows:['t_dept','t_assignee'],cols:['t_due'],value:'m_complete',gran:'month'}),viz:'table',tab:'schedules'};
 }
 
 let state;
 try{ state=JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ state=null; }
-if(!state||!Array.isArray(state.schedules)||!state.forms?.length||!('formId' in (state.pivot||{}))) state=sampleState();
+if(!state||!Array.isArray(state.schedules)||!state.forms?.length||!state.progress) state=sampleState();
 state.forms.forEach(F=>F.fields=F.fields.filter(f=>f.type!=='section'));
-state.accuracy??=[];
-state.views??=[];
+state.accuracy??=[]; state.views??=[]; state.progress??={};
 function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){} }
 
 let toastT;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
 const answerable=F=>(F||curForm()).fields.filter(f=>f.type!=='section');
-
 /* ---------- pivot fields ----------
    Schedule fields come from the task (they exist even when nothing was submitted, which completeness needs).
    Questions with the same name in different forms become one field. Grids are pivoted one row at a time. */
@@ -731,20 +886,22 @@ function unifiedFields(formIds){
 const pivotForm=()=>formById(state.pivot.formId)||state.forms[0];
 const selScheds=()=>state.schedules.filter(s=>s.formIds.includes(pivotForm()?.id));
 const selFormIds=()=>pivotForm()?[pivotForm().id]:[];
+const names=ids=>ids.map(personName);
 function taskFields(){
-  const S=selScheds().slice().sort((a,b)=>a.end.localeCompare(b.end));
+  const S=selScheds();
   const ppl=[...new Set(S.flatMap(s=>s.assignees))];
   return [
     {id:'t_task',label:'Task',type:'select',options:S.map(s=>s.name),taskAttr:true},
+    {id:'t_due',label:'Deadline',type:'timestamp',taskAttr:true},
     {id:'t_assignee',label:'Assignee',type:'select',options:state.people.filter(p=>ppl.includes(p.id)).map(p=>p.name),taskAttr:true},
     {id:'t_dept',label:'Department',type:'select',options:[...new Set(state.people.filter(p=>ppl.includes(p.id)).map(p=>p.dept))],taskAttr:true},
-    {id:'t_reviewer',label:'Reviewer 1',type:'select',options:[...new Set(S.map(s=>personName(s.reviewer)))],taskAttr:true},
-    {id:'t_due',label:'End time stamp',type:'timestamp',taskAttr:true}];
+    {id:'t_pos',label:'Position',type:'select',options:[...new Set(state.people.filter(p=>ppl.includes(p.id)).map(p=>p.pos).filter(Boolean))],taskAttr:true},
+    {id:'t_reviewer',label:'Reviewers',type:'checkbox',options:[...new Set(S.flatMap(s=>names(s.reviewers)))],taskAttr:true}];
 }
 const accFields=()=>{ const F=pivotForm(); if(!isAccForm(F?.id))return [];
   const A=state.accuracy.filter(a=>a.formIds.includes(F.id));
   return [{id:'a_kpi',label:'KPI',type:'checkbox',options:[...new Set(A.map(a=>a.kpi))],accAttr:true},
-    {id:'a_rater',label:'Rater',type:'checkbox',options:[...new Set(A.map(a=>personName(a.rater)))],accAttr:true},
+    {id:'a_rater',label:'Raters',type:'checkbox',options:[...new Set(A.flatMap(a=>names(a.raters)))],accAttr:true},
     {id:'a_status',label:'Rating status',type:'select',options:['Rated','Pending','No rater set'],accAttr:true}]; };
 const pivotFields=()=>[...taskFields(),...accFields(),...unifiedFields(selFormIds()),...SYS];
 const pfById=id=>pivotFields().find(f=>f.id===id);
@@ -752,51 +909,147 @@ const inForm=(f,r)=>!f.sources||!!f.sources[r.formId];
 function valueOf(r,f){
   const s=schedById(r.scheduleId);
   switch(f.id){
-    case 't_task': return s?.name; case 't_assignee': return personName(r.by); case 't_dept': return personDept(r.by);
-    case 't_reviewer': return s?personName(s.reviewer):''; case 'sys_form': return formOf(r)?.title; case 't_due': return s?.end;
+    case 't_task': return s?.name; case 't_due': return r.due; case 't_assignee': return personName(r.by); case 't_dept': return personDept(r.by);
+    case 't_pos': return personById(r.by)?.pos||''; case 't_reviewer': return s?names(s.reviewers):[];
+    case 'sys_form': return formOf(r)?.title;
     case 'a_kpi': return r._setup?[r._setup.kpi]:setupsFor(r).map(a=>a.kpi);
-    case 'a_rater': return r._setup?[personName(r._setup.rater)]:setupsFor(r).map(a=>personName(a.rater));
+    case 'a_rater': { if(r._setup){ const rt=r.ratings?.[r._setup.id]; return rt?[personName(rt.by)]:names(r._setup.raters); } return [...new Set(setupsFor(r).flatMap(a=>names(a.raters)))]; }
     case 'a_status': { if(r._setup)return r.ratings?.[r._setup.id]?'Rated':'Pending'; const ss=setupsFor(r); return !ss.length?'No rater set':ss.every(a=>r.ratings?.[a.id])?'Rated':'Pending'; }
   }
   if(f.sources){ const fid=f.sources[r.formId]; if(!fid)return undefined; const v=r.values[fid]; return f.row!=null?(v||{})[f.row]:v; }
   return r.values[f.id];
 }
 const isDateLike=f=>f&&['date','datetime','timestamp'].includes(f.type);
-
-/* ---------- stepper ---------- */
-function renderSteps(){
-  const counts={mine:state.views.length+' saved',build:state.forms.length+' forms',schedule:state.schedules.length+' tasks',accuracy:state.accuracy.length+' set ups',responses:state.responses.length+' rows'};
-  $('#steps').innerHTML=STEPS.map(([k,t,s],i)=>(i?'<span class="arrow" aria-hidden="true">→</span>':'')+
-    `<button class="step" role="tab" id="step-${k}" aria-controls="tab-${k}" aria-selected="${state.tab===k}" data-tab="${k}">
-      <span class="n">${i+1}</span><span><span class="t">${t}</span><br><span class="s">${esc(counts[k]||s)}</span></span></button>`).join('');
+/* ---------- sidebar navigation ---------- */
+const IC={
+  form:'<path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8 12h8M8 16h6"/>',
+  sched:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/>',
+  acc:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2v2H8zM14 14h2v2h-2z"/>',
+  rate:'<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.8 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z"/>',
+  resp:'<path d="M4 4h16v16H4z"/><path d="M4 9h16M4 14h16M9 4v16"/>',
+  pivot:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  mine:'<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>'};
+const NAV=[
+  ['Build',[['build','Form Builder','form']]],
+  ['Set ups',[['schedule','Schedule Set Up','sched'],['accuracy','Accuracy Set Up','acc']]],
+  ['My work',[['schedules','Schedules','cal'],['rate','To rate','rate']]],
+  ['Reports & insights',[['responses','Responses','resp'],['analysis','Pivot & Charts','pivot'],['mine','My charts','mine']]]];
+const PAGES=NAV.flatMap(g=>g[1]);
+const icon=k=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
+function navCounts(){
+  const me=state.who, now=nowIso(), soon=localIso(new Date(Date.now()+7*864e5));
+  const dueSoon=state.schedules.filter(s=>s.assignees.includes(me)).reduce((n,s)=>n+s.deadlines.filter(d=>d>=now&&d<=soon&&!occDone(s,d,me)).length,0);
+  return {schedules:dueSoon, rate:rateQueue(me).filter(x=>!x.rt).length, mine:state.views.filter(v=>formById(v.config.formId)&&(v.people.includes(me)||v.positions.includes(personById(me)?.pos))).length};
 }
+function renderNav(){
+  const q=($('#navFind').value||'').trim().toLowerCase(), c=navCounts();
+  $('#nav').innerHTML=NAV.map(([g,items])=>{ const its=items.filter(([,l])=>!q||l.toLowerCase().includes(q)); if(!its.length)return '';
+    return `<div class="nav-g"><span class="nav-h">${esc(g)}</span>${its.map(([k,l,ic])=>`<button type="button" class="nav-i" data-tab="${k}" aria-current="${state.tab===k?'page':'false'}">${icon(ic)}<span>${esc(l)}</span>${c[k]?`<span class="nav-c">${c[k]}</span>`:''}</button>`).join('')}</div>`; }).join('')||'<p class="nav-empty">No page matches.</p>';
+  const me=personById(state.who);
+  $('#meAv').textContent=(me?.name||'?').split(' ').map(x=>x[0]).slice(0,2).join('');
+  $('#meName').textContent=me?.name||''; $('#mePos').textContent=me?(me.pos||me.dept):'';
+  $('#meSel').innerHTML=state.people.map(p=>`<option value="${p.id}" ${p.id===state.who?'selected':''}>${esc(p.name)} · ${esc(p.pos||p.dept)}</option>`).join('');
+  $('#crumb').textContent=PAGES.find(p=>p[0]===state.tab)?.[1]||'';
+}
+const renderSteps=renderNav;
 function go(tab){
-  state.tab=tab; save();
-  STEPS.forEach(([k])=>{ $('#tab-'+k).hidden=k!==tab; });
-  renderSteps();
+  if(!PAGES.some(p=>p[0]===tab))tab='schedules';
+  state.tab=tab; save(); closeAllPops();
+  PAGES.forEach(([k])=>{ $('#tab-'+k).hidden=k!==tab; });
+  document.body.classList.remove('nav-open');
+  renderNav();
   if(tab==='build')renderBuild();
   if(tab==='schedule')renderScheduleTab();
   if(tab==='accuracy')renderAccuracyTab();
-  if(tab==='collect')renderCollect();
+  if(tab==='schedules')renderCalendar();
+  if(tab==='rate')renderRateList();
   if(tab==='responses')renderResponses();
-  if(tab==='pivot'){renderPicker();renderPivotControls();renderPivot();}
-  if(tab==='viz'){fixPivot();renderViz();renderAssign();}
+  if(tab==='analysis')renderAnalysis();
   if(tab==='mine')renderMine();
 }
 document.addEventListener('click',e=>{
-  const s=e.target.closest('[data-tab]'); if(s){go(s.dataset.tab);return;}
-  const g=e.target.closest('[data-goto]'); if(g){go(g.dataset.goto);window.scrollTo({top:0,behavior:'smooth'});}
+  const s=e.target.closest('[data-tab]'); if(s){ go(s.dataset.tab); window.scrollTo({top:0}); return; }
+  const g=e.target.closest('[data-goto]'); if(g){ go(g.dataset.goto); window.scrollTo({top:0,behavior:'smooth'}); }
 });
+$('#navFind').addEventListener('input',renderNav);
+$('#meSel').addEventListener('change',e=>{ state.who=e.target.value; state.open=null; state.rating=null; state.sel=null; save(); go(state.tab); toast(`Signed in as ${personName(state.who)}`); });
+$('#menuBtn').addEventListener('click',()=>document.body.classList.toggle('nav-open'));
+$('#scrim').addEventListener('click',()=>document.body.classList.remove('nav-open'));
 
+/* place a floating panel under its button, or above it when there is more room there */
+function placePop(pop,btn){
+  const r0=btn.getBoundingClientRect(); pop.style.minWidth=Math.min(r0.width,innerWidth-32)+'px';
+  const r=btn.getBoundingClientRect(), w=pop.offsetWidth, below=innerHeight-r.bottom-16, above=r.top-16;
+  pop.style.left=Math.max(16,Math.min(r.left,innerWidth-w-16))+'px';
+  if(below>=320||below>=above){ pop.style.top=(r.bottom+6)+'px'; pop.style.bottom=''; pop.style.maxHeight=Math.max(160,below)+'px'; }
+  else { pop.style.top=''; pop.style.bottom=(innerHeight-r.top+6)+'px'; pop.style.maxHeight=Math.max(160,above)+'px'; }
+}
+/* ---------- multi-select dropdown ----------
+   msHtml(key,{title, items:[{v,l,g,note,dis}], sel:[], placeholder, onChange(sel)}) renders a button;
+   clicking it opens a checklist with search, select all, and select all per group. */
+const CHEV='<svg class="ms-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const MS={}; let msOpenKey=null, msQuery='';
+function msHtml(key,cfg){
+  MS[key]=cfg; const it=cfg.items.filter(i=>cfg.sel.includes(i.v));
+  const txt=cfg.single?(it.length?esc(it[0].l):`<span class="dim">${esc(cfg.placeholder||'Choose…')}</span>`):it.length?(it.length>2?`<span class="n">${it.length}</span>${esc(it.slice(0,2).map(i=>i.l).join(', '))} +${it.length-2} more`:`${it.length>1?`<span class="n">${it.length}</span>`:''}${esc(it.map(i=>i.l).join(', '))}`):`<span class="dim">${esc(cfg.placeholder||'Choose…')}</span>`;
+  return `<button type="button" class="ms" data-ms="${key}" aria-haspopup="dialog" aria-expanded="${msOpenKey===key}" title="${esc(it.map(i=>i.l).join(', '))}"><span class="ms-txt">${txt}</span>${CHEV}</button>`;
+}
+function msListHtml(cfg){
+  const q=msQuery.trim().toLowerCase(), groups=[...new Set(cfg.items.map(i=>i.g||''))];
+  return groups.map(g=>{ const its=cfg.items.filter(i=>(i.g||'')===g&&(!q||i.l.toLowerCase().includes(q)||(i.note||'').toLowerCase().includes(q)||g.toLowerCase().includes(q))); if(!its.length)return '';
+    const on=its.filter(i=>!i.dis), all=on.length&&on.every(i=>cfg.sel.includes(i.v));
+    return (g?`<div class="zgroup ms-g"><span>${esc(g)}</span>${on.length>1&&!cfg.single?`<button type="button" class="linkbtn" data-msgrp="${esc(g)}">${all?'Clear':'Select all'}</button>`:''}</div>`:'')+
+      its.map(i=>`<label class="fpop-item ${i.dis?'off':''} ${cfg.single&&cfg.sel.includes(i.v)?'cur':''}"><input type="${cfg.single?'radio':'checkbox'}" name="msr" data-msv="${esc(i.v)}" ${cfg.sel.includes(i.v)?'checked':''} ${i.dis?'disabled':''}><span>${esc(i.l)}</span><span class="mono">${esc(i.note||'')}</span></label>`).join(''); }).join('')||'<p class="empty">No matches.</p>';
+}
+function msRender(listOnly){
+  const cfg=MS[msOpenKey], pop=$('#mspop'); if(!cfg){ msClose(); return; }
+  if(listOnly){ $('#msList').innerHTML=msListHtml(cfg); if(!cfg.single)$('#msCount').textContent=cfg.sel.length+' selected'; return; }
+  pop.innerHTML=`<div class="fpop-head"><b>${esc(cfg.title)}</b><span class="opt-hint" id="msCount">${cfg.single?cfg.items.length+' total':cfg.sel.length+' selected'}</span></div>
+    ${cfg.items.length>6?`<input type="search" id="msSearch" placeholder="Search" aria-label="Search ${esc(cfg.title)}" value="${esc(msQuery)}">`:''}
+    ${cfg.single?'':`<div class="fpop-acts"><button type="button" class="linkbtn" data-msall="1">Select all</button><button type="button" class="linkbtn" data-msall="0">Clear</button></div>`}
+    <div class="fpop-list" id="msList">${msListHtml(cfg)}</div>
+    ${cfg.single?'':'<div class="fpop-foot"><button type="button" class="btn small" id="msDone">Done</button></div>'}`;
+}
+function msOpen(key,btn){
+  closeFilter(); msOpenKey=key; msQuery=''; msRender(); const pop=$('#mspop'); pop.hidden=false;
+  document.querySelectorAll('[data-ms]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.ms===key?'true':'false'));
+  placePop(pop,btn);
+  (document.getElementById('msSearch')||pop.querySelector('input'))?.focus();
+}
+function msClose(){ const pop=$('#mspop'); pop.hidden=true; msOpenKey=null; document.querySelectorAll('[data-ms]').forEach(b=>b.setAttribute('aria-expanded','false')); }
+function msSet(sel){ const cfg=MS[msOpenKey]; if(!cfg)return; cfg.sel=sel; cfg.onChange(sel); msRender(true);
+  const b=document.querySelector(`[data-ms="${msOpenKey}"]`); if(b)b.setAttribute('aria-expanded','true'); }
+function closeAllPops(){ msClose(); if(typeof closeFilter==='function')closeFilter(); }
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-ms]'); if(b){ e.stopPropagation(); if(msOpenKey===b.dataset.ms&&!$('#mspop').hidden){ msClose(); return; } msOpen(b.dataset.ms,b); return; }
+  const pop=$('#mspop'); if(!pop.hidden&&!pop.contains(e.target))msClose();
+},true);
+$('#mspop').addEventListener('change',e=>{ const v=e.target.dataset.msv; if(v==null)return; const cfg=MS[msOpenKey];
+  if(cfg.single){ const k=msOpenKey; msClose(); cfg.sel=[v]; cfg.onChange([v]); document.querySelector(`[data-ms="${k}"]`)?.focus(); return; }
+  msSet(e.target.checked?[...cfg.sel,v]:cfg.sel.filter(x=>x!==v)); });
+$('#mspop').addEventListener('click',e=>{ const cfg=MS[msOpenKey]; if(!cfg)return;
+  if(e.target.id==='msDone'){ msClose(); return; }
+  const all=e.target.closest('[data-msall]'); if(all){ const vis=cfg.items.filter(i=>!i.dis).map(i=>i.v); msSet(all.dataset.msall==='1'?[...new Set([...cfg.sel,...vis])]:[]); return; }
+  const g=e.target.closest('[data-msgrp]'); if(g){ const vs=cfg.items.filter(i=>(i.g||'')===g.dataset.msgrp&&!i.dis).map(i=>i.v), on=vs.every(v=>cfg.sel.includes(v));
+    msSet(on?cfg.sel.filter(v=>!vs.includes(v)):[...new Set([...cfg.sel,...vs])]); }
+});
+$('#mspop').addEventListener('input',e=>{ if(e.target.id!=='msSearch')return; msQuery=e.target.value; msRender(true); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#mspop').hidden)msClose(); });
+window.addEventListener('scroll',()=>{ const pop=$('#mspop'); if(pop.hidden)return;
+  const b=document.querySelector(`[data-ms="${msOpenKey}"]`); if(!b){ msClose(); return; }
+  const r=b.getBoundingClientRect(); if(r.bottom<0||r.top>innerHeight)msClose(); else placePop(pop,b); },{passive:true});
+const peopleItems=(exclude=[])=>state.people.map(p=>({v:p.id,l:p.name,g:p.dept,note:p.pos||'',dis:exclude.includes(p.id)}));
+const qn=F=>{ const n=answerable(F).length; return `${n} question${n===1?'':'s'}`; };
+const formItems=()=>state.forms.map(F=>({v:F.id,l:F.title,note:qn(F)}));
 /* ---------- 1 forms ---------- */
 const bulkOpen=new Set();
 function renderFormCards(){
-  $('#formCards').innerHTML=state.forms.map(F=>{
-    const n=state.responses.filter(r=>r.formId===F.id).length, used=state.schedules.filter(s=>s.formIds.includes(F.id)).length;
-    return `<button type="button" class="form-card" role="listitem" data-form="${F.id}" aria-current="${F.id===curForm().id}">
-      <span class="fc-title">${esc(F.title||'Untitled form')}${isAccForm(F.id)?' <span class="badge acc">Accuracy</span>':''}</span>
-      <span class="fc-meta"><span>${answerable(F).length} questions</span><span>in ${used} schedule${used===1?'':'s'}</span><span>${n} responses</span></span>
-    </button>`;}).join('');
+  const F=curForm(), n=state.responses.filter(r=>r.formId===F.id).length, used=state.schedules.filter(s=>s.formIds.includes(F.id)).length;
+  $('#formCards').innerHTML=`<div class="fld form-pick"><span>Form <span class="opt-hint">${state.forms.length} form${state.forms.length===1?'':'s'}</span></span>${msHtml('fb_form',{title:'Choose a form',single:true,
+      items:state.forms.map(x=>({v:x.id,l:x.title,note:`${qn(x)}${isAccForm(x.id)?' · Accuracy':''}`})),sel:[F.id],placeholder:'Choose a form…',
+      onChange:v=>{ if(v[0]&&v[0]!==state.activeFormId){ state.activeFormId=v[0]; save(); renderBuild(); } }})}</div>
+    <div class="form-pick-meta"><span>${qn(F)}</span><span>in ${used} schedule${used===1?'':'s'}</span><span>${n} responses</span>${isAccForm(F.id)?'<span class="badge acc">Accuracy</span>':''}</div>`;
 }
 $('#formCards').addEventListener('click',e=>{ const b=e.target.closest('[data-form]'); if(!b)return; state.activeFormId=b.dataset.form; save(); renderBuild(); });
 $('#newForm').addEventListener('click',()=>{
@@ -956,50 +1209,79 @@ $('#addField').addEventListener('click',()=>{
   const el=document.getElementById('lbl-'+f.id); el.focus(); el.select();
 });
 
-/* ---------- 2 schedule set up ---------- */
+/* ---------- Schedule Set Up ---------- */
 let draft=null;
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const fmtDue=d=>`${WD[new Date(d).getDay()]} ${fmtShort(d.slice(0,10))}, ${fmtTime(d.slice(11,16))}`;
 function startEdit(id){
   const s=id&&schedById(id);
-  const end=new Date(); end.setDate(end.getDate()+((5-end.getDay()+7)%7||7)); end.setHours(17,0,0,0);
-  draft=s?JSON.parse(JSON.stringify(s)):{id:null,end:localIso(end),name:'',description:'',assignees:[],reviewer:'',formIds:[]};
+  const fri=new Date(); fri.setDate(fri.getDate()+((5-fri.getDay()+7)%7||7));
+  draft=s?JSON.parse(JSON.stringify(s)):{id:null,name:'',description:'',deadlines:[],assignees:[],reviewers:[],formIds:[]};
+  draft._one={date:dayStr(fri),time:'17:00'};
+  draft._rep={every:'week',from:dayStr(fri),to:addDays(dayStr(fri),56),time:'17:00'};
   state.editing=s?s.id:'new'; renderScheduleTab();
   requestAnimationFrame(()=>{ $('#schedEditor').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('sdName')?.focus(); });
 }
 $('#newSched').addEventListener('click',()=>startEdit(null));
+function seriesDates(rep){
+  const out=[]; if(!rep.from||!rep.to||rep.to<rep.from)return out;
+  let d=rep.from, guard=0;
+  const mDay=+rep.from.slice(8,10);
+  while(d<=rep.to&&guard++<400){
+    const wd=new Date(d+'T00:00:00').getDay();
+    if(rep.every==='weekday'){ if(wd>0&&wd<6)out.push(d); d=addDays(d,1); }
+    else if(rep.every==='day'){ out.push(d); d=addDays(d,1); }
+    else if(rep.every==='week'){ out.push(d); d=addDays(d,7); }
+    else if(rep.every==='2week'){ out.push(d); d=addDays(d,14); }
+    else { out.push(d); const dt=new Date(d+'T00:00:00'); const y=dt.getFullYear(), m=dt.getMonth()+1, last=new Date(y,m+1,0).getDate();
+      d=`${m===12?y+1:y}-${pad(m===12?1:m+1)}-${pad(Math.min(mDay,m===12?31:last))}`; }
+  }
+  return out.map(x=>`${x}T${rep.time||'17:00'}`);
+}
 function editorHtml(){
-  const d=draft, depts=[...new Set(state.people.map(p=>p.dept))];
-  const chip=(name,val,on,label)=>`<label class="chip"><input type="checkbox" name="${name}" value="${val}" ${on?'checked':''}> ${esc(label)}</label>`;
+  const d=draft, one=d._one, rep=d._rep, prev=seriesDates(rep), now=nowIso();
+  const dls=[...d.deadlines].sort();
   return `<div><h3>${state.editing==='new'?'New schedule':'Edit schedule'}</h3></div>
    <div class="sched-grid2">
-     <label class="fld" for="sdEnd">End time stamp<input type="datetime-local" id="sdEnd" value="${esc(d.end)}"></label>
-     <label class="fld" for="sdName">Name of task<input type="text" id="sdName" value="${esc(d.name)}" placeholder="e.g. Weekly update – Oct 30"></label>
+     <label class="fld" for="sdName">Name of task<input type="text" id="sdName" value="${esc(d.name)}" placeholder="e.g. KPI Reports"></label>
+     <label class="fld" for="sdDesc">Description<input type="text" id="sdDesc" value="${esc(d.description)}" placeholder="What needs to be done"></label>
    </div>
-   <label class="fld" for="sdDesc">Description<textarea id="sdDesc" rows="2" placeholder="What needs to be done">${esc(d.description)}</textarea></label>
-   <div class="fld"><span>Assigned to <span class="opt-hint">${d.assignees.length} selected</span></span>
-     <div class="chip-groups" id="sdAssignees">${depts.map(dep=>{ const ppl=state.people.filter(p=>p.dept===dep);
-       return `<div class="chip-group"><div class="chip-group-head">${esc(dep)}<button type="button" class="linkbtn" data-dept="${esc(dep)}">${ppl.every(p=>d.assignees.includes(p.id))?'Clear':'Select all'}</button></div>
-         <div class="chips">${ppl.map(p=>chip('assignee',p.id,d.assignees.includes(p.id),p.name)).join('')}</div></div>`; }).join('')}</div></div>
-   <div class="sched-grid2">
-     <label class="fld" for="sdReviewer">Reviewer 1<select id="sdReviewer"><option value="">Choose a reviewer…</option>${state.people.map(p=>`<option value="${p.id}" ${d.reviewer===p.id?'selected':''}>${esc(p.name)} · ${esc(p.dept)}</option>`).join('')}</select></label>
+   <div class="fld"><span>End time stamps <span class="opt-hint">${dls.length} deadline${dls.length===1?'':'s'}. Each one is tracked separately for timeliness and completeness.</span></span>
+     <div class="dl-chips">${dls.length?dls.map(x=>`<span class="dl ${x<now?'past':''}">${esc(fmtDue(x))}<button type="button" class="opt-x" data-dldel="${x}" aria-label="Remove ${esc(fmtDue(x))}">×</button></span>`).join('')+`<button type="button" class="linkbtn del" id="dlClear">Remove all</button>`:'<span class="opt-hint">No deadlines yet. Add one below, or add a series.</span>'}</div>
+     <div class="dl-tools">
+       <div class="dl-box"><span class="dl-t">Add one deadline</span>
+         <div class="dl-row"><input type="date" id="dlDate" value="${one.date}" aria-label="Deadline date"><input type="time" id="dlTime" value="${one.time}" aria-label="Deadline time"><button type="button" class="btn small" id="dlAdd">Add</button></div></div>
+       <div class="dl-box"><span class="dl-t">Add a series</span>
+         <div class="dl-row"><label class="mini" for="rpEvery">Every<select id="rpEvery">${[['weekday','Weekday'],['day','Day'],['week','Week'],['2week','2 weeks'],['month','Month']].map(([v,l])=>`<option value="${v}" ${rep.every===v?'selected':''}>${l}</option>`).join('')}</select></label>
+           <label class="mini" for="rpFrom">From<input type="date" id="rpFrom" value="${rep.from}"></label>
+           <label class="mini" for="rpTo">To<input type="date" id="rpTo" value="${rep.to}"></label>
+           <label class="mini" for="rpTime">At<input type="time" id="rpTime" value="${rep.time}"></label></div>
+         <div class="dl-row"><button type="button" class="btn small ghost" id="rpAdd" ${prev.length?'':'disabled'}>Add ${prev.length} deadline${prev.length===1?'':'s'}</button>
+           <span class="opt-hint">${prev.length?`${esc(prev.slice(0,3).map(fmtDue).join(', '))}${prev.length>3?' …':''}`:'Pick a start and end date.'}</span></div></div>
+     </div></div>
+   <div class="sched-grid3">
+     <div class="fld"><span>Assigned to</span>${msHtml('sd_assignees',{title:'Assigned to',items:peopleItems(),sel:d.assignees,placeholder:'Choose people…',onChange:v=>{draft.assignees=v;refreshEditor();}})}</div>
+     <div class="fld"><span>Reviewers</span>${msHtml('sd_reviewers',{title:'Reviewers',items:peopleItems(),sel:d.reviewers,placeholder:'Choose reviewers…',onChange:v=>{draft.reviewers=v;refreshEditor();}})}</div>
+     <div class="fld"><span>Name of form</span>${msHtml('sd_forms',{title:'Name of form',items:formItems(),sel:d.formIds,placeholder:'Choose forms…',onChange:v=>{draft.formIds=v;refreshEditor();}})}</div>
    </div>
-   <div class="fld"><span>Name of form <span class="opt-hint">${d.formIds.length} selected. Each assignee fills in every selected form.</span></span>
-     <div class="chips" id="sdForms">${state.forms.map(F=>chip('form',F.id,d.formIds.includes(F.id),F.title)).join('')}</div></div>
    <p class="err" id="sdErr" hidden></p>
    <div class="editor-foot"><button type="button" class="btn" id="sdSave">Save schedule</button><button type="button" class="btn ghost" id="sdCancel">Cancel</button>
-     <span class="opt-hint">${d.assignees.length&&d.formIds.length?`Required: ${d.assignees.length} people × ${d.formIds.length} form${d.formIds.length>1?'s':''} = ${d.assignees.length*d.formIds.length} submissions`:''}</span></div>`;
+     <span class="opt-hint">${d.assignees.length&&d.formIds.length&&dls.length?`Required: ${d.assignees.length} people × ${d.formIds.length} form${d.formIds.length>1?'s':''} × ${dls.length} deadline${dls.length>1?'s':''} = ${required(d)} submissions`:''}</span></div>`;
 }
+function refreshEditor(){ const ed=$('#schedEditor'); if(!draft)return; const y=scrollY; ed.innerHTML=editorHtml(); scrollTo(0,y); }
 function renderScheduleTab(){
   const ed=$('#schedEditor');
   if(state.editing&&draft){ ed.hidden=false; ed.innerHTML=editorHtml(); } else { ed.hidden=true; state.editing=null; }
-  const S=state.schedules.slice().sort((a,b)=>b.end.localeCompare(a.end));
-  $('#schedTable').innerHTML=S.length?`<table class="sched"><thead><tr><th>End time stamp</th><th>Name of task</th><th>Description</th><th>Assigned to</th><th>Reviewer 1</th><th>Name of form</th><th>Progress</th><th></th></tr></thead><tbody>${
-    S.map(s=>{ const done=submittedKeys(s).size, req=required(s), st=schedStatus(s);
-      return `<tr><td>${esc(fmtStamp(s.end))}<br>${schedBadge(st)}</td><td><b>${esc(s.name)}</b></td><td class="desc">${esc(s.description)}</td>
-        <td>${s.assignees.length>3?`${s.assignees.slice(0,3).map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('')}<span class="tag">+${s.assignees.length-3} more</span>`:s.assignees.map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('')}</td>
-        <td>${esc(personName(s.reviewer))}</td><td>${s.formIds.map(id=>`<span class="tag">${esc(formById(id)?.title)}</span>`).join('')}</td>
+  const S=state.schedules.slice().sort((a,b)=>(nextDue(a)||'9').localeCompare(nextDue(b)||'9'));
+  const tags=(ids,n=3)=>ids.length>n?`${ids.slice(0,n).map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('')}<span class="tag">+${ids.length-n} more</span>`:ids.map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('');
+  $('#schedTable').innerHTML=S.length?`<table class="sched"><thead><tr><th>End time stamps</th><th>Name of task</th><th>Description</th><th>Assigned to</th><th>Reviewers</th><th>Name of form</th><th>Progress</th><th></th></tr></thead><tbody>${
+    S.map(s=>{ const done=submittedKeys(s).size, req=required(s), st=schedStatus(s), nx=nextDue(s), dl=[...s.deadlines].sort();
+      return `<tr><td><span class="mono">${dl.length} deadline${dl.length===1?'':'s'}</span><br>${nx?`Next: <b>${esc(fmtDue(nx))}</b>`:'All passed'}<br><span class="opt-hint">${esc(fmtShort(dl[0]?.slice(0,10)))} – ${esc(fmtDate(dl[dl.length-1]?.slice(0,10)))}</span><br>${schedBadge(st)}</td>
+        <td><b>${esc(s.name)}</b></td><td class="desc">${esc(s.description)}</td>
+        <td>${tags(s.assignees)}</td><td>${tags(s.reviewers,2)}</td><td>${s.formIds.map(id=>`<span class="tag">${esc(formById(id)?.title)}</span>`).join('')}</td>
         <td><div class="progress"><span class="mono">${done} of ${req} submitted</span><span class="bar"><i style="width:${req?Math.round(done/req*100):0}%"></i></span></div></td>
         <td><button class="linkbtn" data-edit="${s.id}">Edit</button><button class="linkbtn del" data-sdel="${s.id}">${sdelArm===s.id?'Confirm delete':'Delete'}</button></td></tr>`; }).join('')}</tbody></table>`
-    :'<p class="empty">No schedules yet. Create one to assign forms to people.</p>';
+    :'<p class="empty">No schedules yet. Create one to set deadlines for a form.</p>';
   renderPeople();
 }
 let sdelArm=null, sdelT;
@@ -1008,95 +1290,92 @@ $('#schedTable').addEventListener('click',e=>{
   const del=e.target.closest('[data-sdel]'); if(!del)return; const id=del.dataset.sdel;
   if(sdelArm!==id){ sdelArm=id; clearTimeout(sdelT); sdelT=setTimeout(()=>{sdelArm=null;renderScheduleTab();},3500); renderScheduleTab(); return; }
   sdelArm=null; state.schedules=state.schedules.filter(s=>s.id!==id); state.responses=state.responses.filter(r=>r.scheduleId!==id);
-  save(); renderScheduleTab(); renderSteps(); toast('Schedule and its responses deleted');
+  save(); renderScheduleTab(); renderNav(); toast('Schedule and its responses deleted');
 });
 const SE=$('#schedEditor');
 SE.addEventListener('input',e=>{ const t=e.target; if(!draft)return;
-  if(t.id==='sdEnd')draft.end=t.value; if(t.id==='sdName')draft.name=t.value; if(t.id==='sdDesc')draft.description=t.value; if(t.id==='sdReviewer')draft.reviewer=t.value; });
+  if(t.id==='sdName')draft.name=t.value; if(t.id==='sdDesc')draft.description=t.value;
+  if(t.id==='dlDate')draft._one.date=t.value; if(t.id==='dlTime')draft._one.time=t.value; });
 SE.addEventListener('change',e=>{ const t=e.target; if(!draft)return;
-  if(t.name==='assignee'||t.name==='form'){ const k=t.name==='assignee'?'assignees':'formIds';
-    draft[k]=[...SE.querySelectorAll(`input[name="${t.name}"]:checked`)].map(i=>i.value); SE.innerHTML=editorHtml(); }
-  if(t.id==='sdReviewer')draft.reviewer=t.value; });
+  const map={rpEvery:'every',rpFrom:'from',rpTo:'to',rpTime:'time'}; if(map[t.id]){ draft._rep[map[t.id]]=t.value; refreshEditor(); } });
 SE.addEventListener('click',e=>{
-  const dep=e.target.closest('[data-dept]');
-  if(dep){ const ids=state.people.filter(p=>p.dept===dep.dataset.dept).map(p=>p.id), all=ids.every(id=>draft.assignees.includes(id));
-    draft.assignees=all?draft.assignees.filter(id=>!ids.includes(id)):[...new Set([...draft.assignees,...ids])]; SE.innerHTML=editorHtml(); return; }
-  if(e.target.id==='sdCancel'){ draft=null; state.editing=null; save(); renderScheduleTab(); return; }
-  if(e.target.id==='sdSave'){
-    const errs=[]; if(!draft.end)errs.push('set the End time stamp'); if(!draft.name.trim())errs.push('enter the Name of task');
-    if(!draft.assignees.length)errs.push('pick at least one person under Assigned to'); if(!draft.reviewer)errs.push('choose Reviewer 1'); if(!draft.formIds.length)errs.push('pick at least one form');
+  if(!draft)return; const t=e.target;
+  const dd=t.closest('[data-dldel]'); if(dd){ draft.deadlines=draft.deadlines.filter(x=>x!==dd.dataset.dldel); refreshEditor(); return; }
+  if(t.id==='dlClear'){ draft.deadlines=[]; refreshEditor(); return; }
+  if(t.id==='dlAdd'){ const {date,time}=draft._one; if(!date||!time){ toast('Pick a date and a time.'); return; }
+    const v=`${date}T${time}`; if(draft.deadlines.includes(v)){ toast('That deadline is already in the list.'); return; }
+    draft.deadlines.push(v); draft._one.date=addDays(date,7); refreshEditor(); toast(`Added ${fmtDue(v)}`); return; }
+  if(t.id==='rpAdd'){ const add=seriesDates(draft._rep).filter(x=>!draft.deadlines.includes(x)); draft.deadlines.push(...add); refreshEditor(); toast(`Added ${add.length} deadline${add.length===1?'':'s'}`); return; }
+  if(t.id==='sdCancel'){ draft=null; state.editing=null; save(); renderScheduleTab(); return; }
+  if(t.id==='sdSave'){
+    const errs=[]; if(!draft.name.trim())errs.push('enter the Name of task'); if(!draft.deadlines.length)errs.push('add at least one deadline');
+    if(!draft.assignees.length)errs.push('pick at least one person under Assigned to'); if(!draft.reviewers.length)errs.push('pick at least one reviewer'); if(!draft.formIds.length)errs.push('pick at least one form');
     const er=$('#sdErr'); if(errs.length){ er.hidden=false; er.textContent='To save, '+errs.join(', ')+'.'; return; }
-    draft.name=draft.name.trim();
-    if(state.editing==='new'){ draft.id=uid('s_'); state.schedules.push(draft); toast('Schedule saved. Assignees can now see it in Collect.'); }
-    else { const i=state.schedules.findIndex(s=>s.id===state.editing); state.schedules[i]=draft; toast('Schedule updated'); }
-    draft=null; state.editing=null; save(); renderScheduleTab(); renderSteps();
+    const {_one,_rep,...clean}=draft; clean.name=clean.name.trim(); clean.deadlines=[...new Set(clean.deadlines)].sort();
+    if(state.editing==='new'){ clean.id=uid('s_'); state.schedules.push(clean); toast('Schedule saved. Assignees see the deadlines in Schedules.'); }
+    else { const i=state.schedules.findIndex(s=>s.id===state.editing); state.schedules[i]=clean; toast('Schedule updated'); }
+    draft=null; state.editing=null; save(); renderScheduleTab(); renderNav();
   }
 });
 function renderPeople(){
   $('#peopleCount').textContent=state.people.length+' people';
-  const used=id=>state.schedules.some(s=>s.assignees.includes(id)||s.reviewer===id)||state.accuracy.some(a=>a.rater===id||a.ratees.includes(id))||state.views.some(v=>v.people.includes(id));
+  const used=id=>state.schedules.some(s=>s.assignees.includes(id)||s.reviewers.includes(id))||state.accuracy.some(a=>a.raters.includes(id)||a.ratees.includes(id))||state.views.some(v=>v.people.includes(id))||id===state.who;
   $('#peopleList').innerHTML=state.people.map(p=>`<span class="tag">${esc(p.name)} · ${esc(p.pos?p.pos+', ':'')}${esc(p.dept)}${used(p.id)?'':` <button type="button" class="opt-x" data-pdel="${p.id}" aria-label="Remove ${esc(p.name)}" style="width:20px;height:20px;font-size:.9rem">×</button>`}</span>`).join('');
   $('#deptList').innerHTML=[...new Set(state.people.map(p=>p.dept))].map(d=>`<option value="${esc(d)}">`).join('');
   $('#posList').innerHTML=allPositions().map(d=>`<option value="${esc(d)}">`).join('');
 }
-$('#peopleList').addEventListener('click',e=>{ const b=e.target.closest('[data-pdel]'); if(!b)return; state.people=state.people.filter(p=>p.id!==b.dataset.pdel); save(); renderScheduleTab(); });
+$('#peopleList').addEventListener('click',e=>{ const b=e.target.closest('[data-pdel]'); if(!b)return; state.people=state.people.filter(p=>p.id!==b.dataset.pdel); save(); renderScheduleTab(); renderNav(); });
 $('#pAdd').addEventListener('click',()=>{
   const name=$('#pName').value.trim(), dept=$('#pDept').value.trim(), pos=$('#pPos').value.trim();
   if(!name||!dept||!pos){ toast('Enter a name, department and position.'); return; }
-  state.people.push({id:uid('p_'),name,dept,pos}); $('#pName').value=''; save(); renderScheduleTab(); toast(`${name} added`);
+  state.people.push({id:uid('p_'),name,dept,pos}); $('#pName').value=''; save(); renderScheduleTab(); renderNav(); toast(`${name} added`);
 });
-
 /* ---------- accuracy ----------
-   accuracy: { id, ratees[], kpi, rater, formIds[] }      Accuracy Set Up
+   accuracy: { id, ratees[], kpi, raters[], formIds[] }      Accuracy Set Up
    response.ratings: { [setupId]: { score 0–100, comment, by, at } }
-   A form is "for accuracy" when it is named in any Accuracy Set Up; only those forms go through this workflow. */
+   A form is "for accuracy" when it is named in any Accuracy Set Up. Each submission needs one rating per set up,
+   from any one of that set up's raters. */
 const accById=id=>state.accuracy.find(a=>a.id===id);
 const isAccForm=fid=>!!fid&&state.accuracy.some(a=>a.formIds.includes(fid));
 const setupsFor=r=>isAccForm(r.formId)?state.accuracy.filter(a=>a.formIds.includes(r.formId)&&a.ratees.includes(r.by)):[];
-const latestOnly=list=>{ const m=new Map(); list.forEach(r=>m.set(r.scheduleId+'|'+r.formId+'|'+r.by,r)); return [...m.values()]; };
+const latestOnly=list=>{ const m=new Map(); list.forEach(r=>m.set(r.scheduleId+'|'+r.due+'|'+r.formId+'|'+r.by,r)); return [...m.values()]; };
 function rateQueue(raterId){
   const out=[];
-  latestOnly(state.responses).forEach(r=>setupsFor(r).filter(a=>a.rater===raterId).forEach(a=>out.push({r,a,rt:r.ratings?.[a.id]})));
+  latestOnly(state.responses).forEach(r=>setupsFor(r).filter(a=>a.raters.includes(raterId)&&r.by!==raterId).forEach(a=>out.push({r,a,rt:r.ratings?.[a.id]})));
   return out.sort((x,y)=>(!!x.rt-!!y.rt)||y.r.submittedAt.localeCompare(x.r.submittedAt));
 }
 const scoreBadge=sc=>`<span class="badge ${sc>=90?'ok':sc>=75?'part':'late'}">${Math.round(sc)}%</span>`;
 
-/* Accuracy Set Up tab */
 let adraft=null, adelArm=null, adelT;
 function startAccEdit(id){
   const a=id&&accById(id);
-  adraft=a?JSON.parse(JSON.stringify(a)):{id:null,ratees:[],kpi:'',rater:'',formIds:[]};
+  adraft=a?JSON.parse(JSON.stringify(a)):{id:null,ratees:[],kpi:'',raters:[],formIds:[]};
   state.accEditing=a?a.id:'new'; renderAccuracyTab();
   requestAnimationFrame(()=>{ $('#accEditor').scrollIntoView({behavior:'smooth',block:'start'}); });
 }
 $('#newAcc').addEventListener('click',()=>startAccEdit(null));
 function accEditorHtml(){
-  const d=adraft, depts=[...new Set(state.people.map(p=>p.dept))], accForms=state.forms;
-  const kpis=[...new Set(state.accuracy.map(a=>a.kpi).filter(Boolean))];
-  const chip=(name,val,on,label,dis)=>`<label class="chip ${dis?'dis':''}"><input type="checkbox" name="${name}" value="${val}" ${on?'checked':''} ${dis?'disabled':''}> ${esc(label)}</label>`;
+  const d=adraft, kpis=[...new Set(state.accuracy.map(a=>a.kpi).filter(Boolean))];
   return `<div><h3>${state.accEditing==='new'?'New accuracy set up':'Edit accuracy set up'}</h3></div>
-   <div class="fld"><span>Ratee <span class="opt-hint">${d.ratees.length} selected. The people whose submissions are rated.</span></span>
-     <div class="chip-groups">${depts.map(dep=>{ const ppl=state.people.filter(p=>p.dept===dep);
-       return `<div class="chip-group"><div class="chip-group-head">${esc(dep)}<button type="button" class="linkbtn" data-adept="${esc(dep)}">${ppl.every(p=>d.ratees.includes(p.id)||p.id===d.rater)?'Clear':'Select all'}</button></div>
-         <div class="chips">${ppl.map(p=>chip('ratee',p.id,d.ratees.includes(p.id),p.name,p.id===d.rater)).join('')}</div></div>`; }).join('')}</div></div>
    <div class="sched-grid2">
+     <div class="fld"><span>Ratee <span class="opt-hint">Whose submissions are rated</span></span>${msHtml('ac_ratees',{title:'Ratee',items:peopleItems(d.raters),sel:d.ratees,placeholder:'Choose ratees…',onChange:v=>{adraft.ratees=v;refreshAcc();}})}</div>
      <label class="fld" for="adKpi">KPI<input type="text" id="adKpi" list="kpiList" value="${esc(d.kpi)}" placeholder="e.g. Report accuracy"><datalist id="kpiList">${kpis.map(k=>`<option value="${esc(k)}">`).join('')}</datalist></label>
-     <label class="fld" for="adRater">Rater<select id="adRater"><option value="">Choose a rater…</option>${state.people.map(p=>`<option value="${p.id}" ${d.rater===p.id?'selected':''}>${esc(p.name)} · ${esc(p.dept)}</option>`).join('')}</select></label>
+     <div class="fld"><span>Raters <span class="opt-hint">Any one of them can rate a submission</span></span>${msHtml('ac_raters',{title:'Raters',items:peopleItems(d.ratees),sel:d.raters,placeholder:'Choose raters…',onChange:v=>{adraft.raters=v;refreshAcc();}})}</div>
+     <div class="fld"><span>Name of form</span>${msHtml('ac_forms',{title:'Name of form',items:formItems(),sel:d.formIds,placeholder:'Choose forms…',onChange:v=>{adraft.formIds=v;refreshAcc();}})}</div>
    </div>
-   <div class="fld"><span>Name of form <span class="opt-hint">${d.formIds.length} selected. Submissions to these forms will be rated for accuracy.</span></span>
-     <div class="chips">${accForms.length?accForms.map(F=>chip('aform',F.id,d.formIds.includes(F.id),F.title)).join(''):'<span class="opt-hint">No forms yet. Create one in Build form.</span>'}</div></div>
    <p class="err" id="adErr" hidden></p>
    <div class="editor-foot"><button type="button" class="btn" id="adSave">Save</button><button type="button" class="btn ghost" id="adCancel">Cancel</button>
-     <span class="opt-hint">${d.rater?`${esc(personName(d.rater))} will rate ${d.ratees.length} ${d.ratees.length===1?'person':'people'} on ${d.formIds.length} form${d.formIds.length===1?'':'s'}.`:''}</span></div>`;
+     <span class="opt-hint">${d.raters.length&&d.ratees.length?`${d.raters.length} rater${d.raters.length>1?'s':''} for ${d.ratees.length} ${d.ratees.length===1?'person':'people'} on ${d.formIds.length} form${d.formIds.length===1?'':'s'}. People in one list are greyed out in the other.`:''}</span></div>`;
 }
+function refreshAcc(){ if(adraft)$('#accEditor').innerHTML=accEditorHtml(); }
 function renderAccuracyTab(){
   const ed=$('#accEditor');
   if(state.accEditing&&adraft){ ed.hidden=false; ed.innerHTML=accEditorHtml(); } else { ed.hidden=true; state.accEditing=null; }
   const tags=ids=>ids.length>3?`${ids.slice(0,3).map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('')}<span class="tag">+${ids.length-3} more</span>`:ids.map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('');
-  $('#accTable').innerHTML=state.accuracy.length?`<table class="sched"><thead><tr><th>Ratee</th><th>KPI</th><th>Rater</th><th>Name of form</th><th>Progress</th><th>Average accuracy</th><th></th></tr></thead><tbody>${
+  $('#accTable').innerHTML=state.accuracy.length?`<table class="sched"><thead><tr><th>Ratee</th><th>KPI</th><th>Raters</th><th>Name of form</th><th>Progress</th><th>Average accuracy</th><th></th></tr></thead><tbody>${
     state.accuracy.map(a=>{ const q=latestOnly(state.responses).flatMap(r=>setupsFor(r).filter(x=>x.id===a.id).map(()=>r.ratings?.[a.id]));
       const rated=q.filter(Boolean), avg=rated.length?rated.reduce((s,x)=>s+x.score,0)/rated.length:null;
-            return `<tr><td>${tags(a.ratees)}</td><td><b>${esc(a.kpi)}</b></td><td>${esc(personName(a.rater))}</td>
+      return `<tr><td>${tags(a.ratees)}</td><td><b>${esc(a.kpi)}</b></td><td>${tags(a.raters)}</td>
         <td>${a.formIds.map(id=>`<span class="tag">${esc(formById(id)?.title)}</span>`).join('')}</td>
         <td><div class="progress"><span class="mono">${rated.length} of ${q.length} rated</span><span class="bar"><i style="width:${q.length?Math.round(rated.length/q.length*100):0}%"></i></span></div></td>
         <td>${avg==null?'<span class="dim">–</span>':scoreBadge(avg)}</td>
@@ -1108,50 +1387,44 @@ $('#accTable').addEventListener('click',e=>{
   const del=e.target.closest('[data-adel]'); if(!del)return; const id=del.dataset.adel;
   if(adelArm!==id){ adelArm=id; clearTimeout(adelT); adelT=setTimeout(()=>{adelArm=null;renderAccuracyTab();},3500); renderAccuracyTab(); return; }
   adelArm=null; state.accuracy=state.accuracy.filter(a=>a.id!==id); state.responses.forEach(r=>{ if(r.ratings)delete r.ratings[id]; });
-  save(); renderAccuracyTab(); renderSteps(); toast('Accuracy set up and its ratings deleted');
+  save(); renderAccuracyTab(); renderNav(); toast('Accuracy set up and its ratings deleted');
 });
 const AE=$('#accEditor');
-AE.addEventListener('input',e=>{ if(!adraft)return; if(e.target.id==='adKpi')adraft.kpi=e.target.value; });
-AE.addEventListener('change',e=>{ const t=e.target; if(!adraft)return;
-  if(t.name==='ratee'||t.name==='aform'){ const k=t.name==='ratee'?'ratees':'formIds'; adraft[k]=[...AE.querySelectorAll(`input[name="${t.name}"]:checked`)].map(i=>i.value); AE.innerHTML=accEditorHtml(); }
-  if(t.id==='adRater'){ adraft.rater=t.value; adraft.ratees=adraft.ratees.filter(id=>id!==t.value); AE.innerHTML=accEditorHtml(); } });
+AE.addEventListener('input',e=>{ if(adraft&&e.target.id==='adKpi')adraft.kpi=e.target.value; });
 AE.addEventListener('click',e=>{
-  const dep=e.target.closest('[data-adept]');
-  if(dep){ const ids=state.people.filter(p=>p.dept===dep.dataset.adept&&p.id!==adraft.rater).map(p=>p.id), all=ids.every(id=>adraft.ratees.includes(id));
-    adraft.ratees=all?adraft.ratees.filter(id=>!ids.includes(id)):[...new Set([...adraft.ratees,...ids])]; AE.innerHTML=accEditorHtml(); return; }
+  if(!adraft)return;
   if(e.target.id==='adCancel'){ adraft=null; state.accEditing=null; save(); renderAccuracyTab(); return; }
   if(e.target.id==='adSave'){
     const errs=[]; if(!adraft.ratees.length)errs.push('pick at least one Ratee'); if(!adraft.kpi.trim())errs.push('enter the KPI');
-    if(!adraft.rater)errs.push('choose the Rater'); if(!adraft.formIds.length)errs.push('pick at least one form');
-    if(adraft.ratees.includes(adraft.rater))errs.push('remove the rater from the ratees, since people cannot rate themselves');
+    if(!adraft.raters.length)errs.push('pick at least one Rater'); if(!adraft.formIds.length)errs.push('pick at least one form');
+    if(adraft.ratees.some(id=>adraft.raters.includes(id)))errs.push('people cannot rate themselves, so remove anyone who is both a ratee and a rater');
     const er=$('#adErr'); if(errs.length){ er.hidden=false; er.textContent='To save, '+errs.join(', ')+'.'; return; }
     adraft.kpi=adraft.kpi.trim();
-    if(state.accEditing==='new'){ adraft.id=uid('a_'); state.accuracy.push(adraft); toast(`Saved. ${personName(adraft.rater)} will see new submissions in To rate.`); }
+    if(state.accEditing==='new'){ adraft.id=uid('a_'); state.accuracy.push(adraft); toast('Saved. New submissions appear in the raters’ To rate list.'); }
     else { const i=state.accuracy.findIndex(a=>a.id===state.accEditing); state.accuracy[i]=adraft; toast('Accuracy set up updated'); }
-    adraft=null; state.accEditing=null; save(); renderAccuracyTab(); renderSteps();
+    adraft=null; state.accEditing=null; save(); renderAccuracyTab(); renderNav();
   }
 });
 
-/* To rate (shown in Collect for the signed-in rater) */
+/* To rate */
 function renderRateList(){
-  const q=rateQueue(state.who), wrap=$('#rateWrap');
-  wrap.hidden=!q.length&&!state.accuracy.some(a=>a.rater===state.who);
-  const pend=q.filter(x=>!x.rt).length;
-  $('#rateHead').innerHTML=`To rate <span class="badge ${pend?'part':'ok'}">${pend?`${pend} pending`:'All rated'}</span>`;
-  $('#rateList').innerHTML=q.length?`<table class="sched rate"><thead><tr><th>Ratee</th><th>Form</th><th>KPI</th><th>Task</th><th>Submitted</th><th>Accuracy</th><th></th></tr></thead><tbody>${
+  const q=rateQueue(state.who), pend=q.filter(x=>!x.rt).length, mine=state.accuracy.filter(a=>a.raters.includes(state.who));
+  $('#rateSub').innerHTML=mine.length?`${esc(personName(state.who))} rates ${mine.map(a=>`<b>${esc(a.kpi)}</b>`).join(', ')}. ${pend?`<span class="badge part">${pend} pending</span>`:'<span class="badge ok">All rated</span>'}`
+    :`${esc(personName(state.who))} is not a rater in any Accuracy Set Up. Switch person at the bottom of the sidebar to try a rater, such as Lea Ramos.`;
+  $('#rateList').innerHTML=q.length?`<table class="sched rate"><thead><tr><th>Ratee</th><th>Form</th><th>KPI</th><th>Task</th><th>Deadline</th><th>Submitted</th><th>Accuracy</th><th></th></tr></thead><tbody>${
     q.map(({r,a,rt})=>`<tr><td>${esc(personName(r.by))}</td><td>${esc(formOf(r)?.title)}</td><td>${esc(a.kpi)}</td><td>${esc(schedById(r.scheduleId)?.name||'')}</td>
-      <td class="mono">${esc(fmtStamp(r.submittedAt))}</td><td>${rt?scoreBadge(rt.score):'<span class="badge closed">Pending</span>'}</td>
+      <td class="mono">${esc(fmtShort(r.due.slice(0,10)))}</td><td class="mono">${esc(fmtStamp(r.submittedAt))}</td><td>${rt?`${scoreBadge(rt.score)} <span class="dim">by ${esc(personName(rt.by))}</span>`:'<span class="badge closed">Pending</span>'}</td>
       <td><button class="btn ${rt?'ghost':''} small" data-rate="${r.id}|${a.id}">${rt?'Edit rating':'Rate'}</button></td></tr>`).join('')}</tbody></table>`
-    :'<p class="empty">Nothing to rate yet. Submissions from your ratees will appear here.</p>';
+    :'<p class="empty">Nothing to rate.</p>';
   renderRateSheet();
 }
 function renderRateSheet(){
   const box=$('#rateSheet'), o=state.rating, r=o&&state.responses.find(x=>x.id===o.rid), a=o&&accById(o.aid);
-  if(!r||!a||a.rater!==state.who){ box.hidden=true; box.innerHTML=''; state.rating=null; return; }
+  if(!r||!a||!a.raters.includes(state.who)){ box.hidden=true; box.innerHTML=''; state.rating=null; return; }
   const F=formOf(r), rt=r.ratings?.[a.id], sc=rt?rt.score:'';
   box.hidden=false;
   box.innerHTML=`<div><p class="eyebrow">Rate accuracy · ${esc(a.kpi)}</p><h2>${esc(F.title)} · ${esc(personName(r.by))}</h2>
-     <p class="lede" style="margin-top:4px">${esc(schedById(r.scheduleId)?.name||'')} · submitted ${esc(fmtStamp(r.submittedAt))} · ${r.values.sys_timeliness}</p></div>
+     <p class="lede" style="margin-top:4px">${esc(schedById(r.scheduleId)?.name||'')} · deadline ${esc(fmtStamp(r.due))} · submitted ${esc(fmtStamp(r.submittedAt))} · ${r.values.sys_timeliness}</p></div>
    <dl class="answers">${answerable(F).map(f=>`<dt>${esc(f.label)}</dt><dd>${cellHtml(f,r.values[f.id])}</dd>`).join('')}</dl>
    <div class="rate-input">
      <label class="fld" for="rateScore">Accuracy score (%)<span class="score-row"><input type="range" id="rateRange" min="0" max="100" step="1" value="${sc===''?100:sc}" aria-label="Accuracy score slider">
@@ -1160,7 +1433,7 @@ function renderRateSheet(){
      <p class="err" id="rateErr" hidden></p>
    </div>
    <div class="sheet-foot"><button type="button" class="btn" id="rateSave">Save rating</button><button type="button" class="btn ghost" id="rateClose">Close</button>
-     ${rt?`<span class="opt-hint">Rated ${esc(fmtStamp(rt.at))}</span>`:''}</div>`;
+     ${rt?`<span class="opt-hint">Rated by ${esc(personName(rt.by))}, ${esc(fmtStamp(rt.at))}</span>`:''}</div>`;
 }
 $('#rateList').addEventListener('click',e=>{ const b=e.target.closest('[data-rate]'); if(!b)return; const [rid,aid]=b.dataset.rate.split('|');
   state.rating={rid,aid}; save(); renderRateSheet(); requestAnimationFrame(()=>$('#rateSheet').scrollIntoView({behavior:'smooth',block:'start'})); });
@@ -1175,50 +1448,104 @@ $('#rateSheet').addEventListener('click',e=>{
   if(v===''||!isFinite(n)||n<0||n>100){ er.hidden=false; er.textContent='Enter a score from 0 to 100.'; return; }
   const r=state.responses.find(x=>x.id===state.rating.rid), a=accById(state.rating.aid);
   (r.ratings??={})[a.id]={score:Math.round(n),comment:$('#rateComment').value.trim(),by:state.who,at:nowIso()};
-  state.rating=null; save(); renderRateList(); toast(`Rated ${personName(r.by)}: ${Math.round(n)}% ${a.kpi}`);
+  state.rating=null; save(); renderRateList(); renderNav(); toast(`Rated ${personName(r.by)}: ${Math.round(n)}% ${a.kpi}`);
+});
+/* ---------- Schedules: calendar for the signed-in employee ----------
+   Shows every deadline of the schedules assigned to them. Clicking one opens its details,
+   where they record a start date, progress and notes, and fill in the forms. */
+const progKey=(sid,due,who)=>`${sid}|${due}|${who}`;
+const myOccs=()=>state.schedules.filter(s=>s.assignees.includes(state.who)).flatMap(s=>s.deadlines.map(due=>({s,due})));
+function occState(s,due,who){
+  const done=occDone(s,due,who), now=nowIso(), pr=state.progress[progKey(s.id,due,who)];
+  if(done)return 'done'; if(due<now)return 'overdue'; if(pr&&(pr.start||pr.pct))return 'inprog'; return 'open';
+}
+const OCC_TXT={done:'Submitted',overdue:'Missed',inprog:'In progress',open:'Not started'};
+const occBadge=st=>`<span class="badge ${st==='done'?'ok':st==='overdue'?'late':st==='inprog'?'part':'sched'}">${OCC_TXT[st]}</span>`;
+function renderCalendar(){
+  const ym=state.cal||nowIso().slice(0,7), y=+ym.slice(0,4), m=+ym.slice(5,7);
+  const first=new Date(y,m-1,1), startOff=(first.getDay()+6)%7, days=new Date(y,m,0).getDate();
+  const occs=myOccs(), today=nowIso().slice(0,10), who=state.who;
+  const byDay={}, starts={};
+  occs.forEach(o=>{ (byDay[o.due.slice(0,10)]??=[]).push(o); const pr=state.progress[progKey(o.s.id,o.due,who)]; if(pr?.start&&!occDone(o.s,o.due,who))(starts[pr.start]??=[]).push(o); });
+  const me=personById(who);
+  $('#calSub').innerHTML=`${esc(me?.name||'')}'s deadlines from Schedule Set Up. Click one to record a start date, progress or notes, and to fill in its forms.`;
+  $('#calTitle').textContent=`${['January','February','March','April','May','June','July','August','September','October','November','December'][m-1]} ${y}`;
+  let cells='';
+  for(let i=0;i<startOff;i++)cells+='<div class="cal-c out" aria-hidden="true"></div>';
+  for(let d=1;d<=days;d++){
+    const ds=`${ym}-${pad(d)}`, list=(byDay[ds]||[]).sort((a,b)=>a.due.localeCompare(b.due)), st=starts[ds]||[];
+    cells+=`<div class="cal-c ${ds===today?'today':''}"><span class="cal-d">${d}</span>${
+      st.map(o=>`<button type="button" class="ev start" data-occ="${o.s.id}|${o.due}" title="Started: ${esc(o.s.name)}"><span class="ev-n">▸ ${esc(o.s.name)}</span></button>`).join('')}${
+      list.map(o=>{ const os=occState(o.s,o.due,who), pr=state.progress[progKey(o.s.id,o.due,who)], sel=state.sel===o.s.id+'|'+o.due;
+        return `<button type="button" class="ev ${os} ${sel?'sel':''}" data-occ="${o.s.id}|${o.due}" title="${esc(fmtTime(o.due.slice(11,16)))} · ${esc(o.s.name)} · ${OCC_TXT[os]}"><span class="ev-n">${esc(o.s.name)}</span>${pr?.pct&&os!=='done'?`<span class="ev-bar"><i style="width:${pr.pct}%"></i></span>`:''}</button>`; }).join('')}</div>`;
+  }
+  const tail=(7-(startOff+days)%7)%7; for(let i=0;i<tail;i++)cells+='<div class="cal-c out" aria-hidden="true"></div>';
+  $('#calGrid').innerHTML=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w=>`<div class="cal-w">${w}</div>`).join('')+cells;
+  const up=occs.filter(o=>o.due>=nowIso()||!occDone(o.s,o.due,who)).sort((a,b)=>a.due.localeCompare(b.due)).filter(o=>o.due>=addDays(today,-14)).slice(0,8);
+  $('#agenda').innerHTML=up.length?up.map(o=>{ const os=occState(o.s,o.due,who), pr=state.progress[progKey(o.s.id,o.due,who)];
+    return `<button type="button" class="ag ${state.sel===o.s.id+'|'+o.due?'sel':''}" data-occ="${o.s.id}|${o.due}"><span class="ag-d"><b>${esc(fmtShort(o.due.slice(0,10)))}</b><small>${esc(fmtTime(o.due.slice(11,16)))}</small></span>
+      <span class="ag-m"><b>${esc(o.s.name)}</b><small>${esc(o.s.formIds.map(id=>formById(id)?.title).join(', '))}${pr?.pct&&os!=='done'?` · ${pr.pct}%`:''}</small></span>${occBadge(os)}</button>`; }).join('')
+    :'<p class="empty">No upcoming deadlines.</p>';
+  renderOccPanel();
+}
+function renderOccPanel(){
+  if(!state.sel){ const nx=myOccs().filter(o=>o.due>=nowIso()&&!occDone(o.s,o.due,state.who)).sort((a,b)=>a.due.localeCompare(b.due))[0]; if(nx)state.sel=nx.s.id+'|'+nx.due; }
+  const box=$('#occPanel'), [sid,due]=(state.sel||'').split('|'), s=schedById(sid), who=state.who;
+  if(!s||!s.assignees.includes(who)||!s.deadlines.includes(due)){ state.sel=null; box.innerHTML='<p class="empty">Select a deadline on the calendar or in Upcoming to see its details.</p>'; renderSheet(); return; }
+  const pr=state.progress[progKey(sid,due,who)]||{}, os=occState(s,due,who);
+  box.innerHTML=`<div class="occ-head"><div><p class="eyebrow">Deadline</p><h3>${esc(s.name)}</h3><p class="opt-hint">${esc(fmtDue(due))}${s.description?` · ${esc(s.description)}`:''}</p></div>${occBadge(os)}</div>
+    <div class="occ-meta"><span>Reviewers: ${esc(names(s.reviewers).join(', '))}</span></div>
+    <div class="occ-forms"><span class="dl-t">Forms to submit</span>${s.formIds.map(fid=>{ const F=formById(fid), r=state.responses.filter(x=>x.scheduleId===sid&&x.due===due&&x.formId===fid&&x.by===who).slice(-1)[0];
+      return `<button type="button" class="task-form" data-fill="${fid}" aria-current="${state.open&&state.open.fid===fid}"><span>${esc(F?.title)}</span><span class="badges">${r?`<span class="badge ${r.values.sys_timeliness==='Late'?'late':'ok'}">Submitted ${esc(fmtShort(r.submittedAt.slice(0,10)))} · ${r.values.sys_timeliness}</span>`:'<span class="badge closed">Fill in</span>'}${r?setupsFor(r).map(a=>r.ratings?.[a.id]?`<span class="badge acc" title="${esc(a.kpi)}">Accuracy ${r.ratings[a.id].score}%</span>`:'<span class="badge closed">Awaiting rating</span>').join(''):''}</span></button>`; }).join('')}</div>
+    <div class="occ-prog"><span class="dl-t">My progress</span>
+      <div class="prog-grid">
+        <label class="fld" for="pgStart">Start date<input type="date" id="pgStart" value="${esc(pr.start||'')}" max="${esc(due.slice(0,10))}"></label>
+        <label class="fld" for="pgPct">Progress<span class="score-row"><input type="range" id="pgRange" min="0" max="100" step="5" value="${pr.pct||0}" aria-label="Progress slider"><input type="number" id="pgPct" min="0" max="100" step="5" value="${pr.pct??''}" placeholder="0"><span>%</span></span></label>
+      </div>
+      <label class="fld" for="pgNotes">Notes<textarea id="pgNotes" rows="3" placeholder="What have you done so far? Anything blocking you?">${esc(pr.notes||'')}</textarea></label>
+      <div class="editor-foot"><button type="button" class="btn small" id="pgSave">Save progress</button>${pr.at?`<span class="opt-hint">Last updated ${esc(fmtStamp(pr.at))}</span>`:''}</div>
+    </div>`;
+  renderSheet();
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-occ]'); if(!b)return;
+  state.sel=b.dataset.occ; state.open=null; save(); renderCalendar();
+  if(innerWidth<900)requestAnimationFrame(()=>$('#occPanel').scrollIntoView({behavior:'smooth',block:'start'})); });
+$('#calPrev').addEventListener('click',()=>{ const [y,m]=state.cal.split('-').map(Number); const d=new Date(y,m-2,1); state.cal=`${d.getFullYear()}-${pad(d.getMonth()+1)}`; save(); renderCalendar(); });
+$('#calNext').addEventListener('click',()=>{ const [y,m]=state.cal.split('-').map(Number); const d=new Date(y,m,1); state.cal=`${d.getFullYear()}-${pad(d.getMonth()+1)}`; save(); renderCalendar(); });
+$('#calToday').addEventListener('click',()=>{ state.cal=nowIso().slice(0,7); save(); renderCalendar(); });
+$('#occPanel').addEventListener('input',e=>{
+  if(e.target.id==='pgRange')$('#pgPct').value=e.target.value;
+  if(e.target.id==='pgPct'&&e.target.value!=='')$('#pgRange').value=Math.max(0,Math.min(100,+e.target.value));
+});
+$('#occPanel').addEventListener('click',e=>{
+  const f=e.target.closest('[data-fill]'); if(f){ const [sid,due]=state.sel.split('|'); state.open={sid,due,fid:f.dataset.fill}; save(); renderOccPanel(); requestAnimationFrame(()=>$('#fillForm').scrollIntoView({behavior:'smooth',block:'start'})); return; }
+  if(e.target.id!=='pgSave')return;
+  const [sid,due]=state.sel.split('|'), start=$('#pgStart').value, v=$('#pgPct').value.trim(), pct=v===''?0:Math.max(0,Math.min(100,Math.round(+v))), notes=$('#pgNotes').value.trim();
+  if(start&&start>due.slice(0,10)){ toast('The start date must be on or before the deadline.'); return; }
+  state.progress[progKey(sid,due,state.who)]={start,pct,notes,at:nowIso()}; save(); renderCalendar(); toast('Progress saved');
 });
 
-/* ---------- 3 my tasks (collect) ---------- */
+/* fill in a form for one deadline */
 const simNow=()=>$('#simTime')?.value||nowIso();
 const openSched=()=>state.open&&schedById(state.open.sid);
 function dueStatus(){
-  const s=openSched(); if(!s)return '';
-  const late=new Date(simNow())>new Date(s.end);
+  const o=state.open; if(!o)return '';
+  const late=new Date(simNow())>new Date(o.due);
   return `<span class="badge ${late?'late':'ok'}">${late?'Will be recorded as Late':'Will be recorded as On time'}</span>`;
 }
-function renderCollect(){
-  const staff=state.people.filter(p=>state.schedules.some(s=>s.assignees.includes(p.id)));
-  if(!personById(state.who))state.who=staff[0]?.id||state.people[0]?.id;
-  $('#collectWho').innerHTML=state.people.map(p=>`<option value="${p.id}" ${p.id===state.who?'selected':''}>${esc(p.name)} · ${esc(p.dept)}</option>`).join('');
-  const mine=state.schedules.filter(s=>s.assignees.includes(state.who)).sort((a,b)=>b.end.localeCompare(a.end));
-  $('#taskList').innerHTML=mine.length?mine.map(s=>{
-    const due=s.end<nowIso();
-    return `<div class="task-card"><div class="fc-top" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h3>${esc(s.name)}</h3>${
-      s.formIds.every(fid=>myLatest(s.id,fid))?'<span class="badge ok">All submitted</span>':due?'<span class="badge late">Past due</span>':'<span class="badge sched">Open</span>'}</div>
-      <span class="meta">Due ${esc(fmtStamp(s.end))} · Reviewer: ${esc(personName(s.reviewer))}</span>
-      ${s.description?`<span class="meta">${esc(s.description)}</span>`:''}
-      <div class="task-forms">${s.formIds.map(fid=>{ const r=myLatest(s.id,fid), F=formById(fid);
-        return `<button type="button" class="task-form" data-sid="${s.id}" data-fid="${fid}" aria-current="${state.open&&state.open.sid===s.id&&state.open.fid===fid}">
-          <span>${esc(F?.title)}</span><span class="badges">${r?`<span class="badge ${r.values.sys_timeliness==='Late'?'late':'ok'}">Submitted ${esc(fmtShort(r.submittedAt))} · ${r.values.sys_timeliness}</span>`:'<span class="badge closed">Not submitted</span>'}${r?setupsFor(r).map(a=>r.ratings?.[a.id]?`<span class="badge acc" title="${esc(a.kpi)}">Accuracy ${r.ratings[a.id].score}%</span>`:'<span class="badge closed">Awaiting rating</span>').join(''):''}</span></button>`; }).join('')}</div></div>`; }).join('')
-    :(state.accuracy.some(a=>a.rater===state.who)?'':'<p class="card empty">No tasks are assigned to this person. Assign them in Schedule Set Up.</p>');
-  if(state.open&&!(openSched()&&openSched().assignees.includes(state.who)&&openSched().formIds.includes(state.open.fid)))state.open=null;
-  renderSheet();
-  renderRateList();
-}
-const myLatest=(sid,fid)=>state.responses.filter(r=>r.scheduleId===sid&&r.formId===fid&&r.by===state.who).slice(-1)[0];
 function renderSheet(){
-  const sheet=$('#fillForm'), s=openSched();
-  if(!s){ sheet.hidden=true; sheet.innerHTML=''; return; }
-  const F=formById(state.open.fid); sheet.hidden=false;
-  const prev=myLatest(s.id,F.id);
-  sheet.innerHTML=`<div><p class="eyebrow">${esc(s.name)}</p><h2>${esc(F.title)}</h2><p class="lede" style="margin-top:4px">${esc(F.description)}</p></div>
+  const sheet=$('#fillForm'), o=state.open, s=openSched();
+  if(!s||state.sel!==o.sid+'|'+o.due){ sheet.hidden=true; sheet.innerHTML=''; return; }
+  const F=formById(o.fid); sheet.hidden=false;
+  const prev=state.responses.filter(r=>r.scheduleId===o.sid&&r.due===o.due&&r.formId===o.fid&&r.by===state.who).slice(-1)[0];
+  sheet.innerHTML=`<div><p class="eyebrow">${esc(s.name)} · ${esc(fmtDue(o.due))}</p><h2>${esc(F.title)}</h2><p class="lede" style="margin-top:4px">${esc(F.description)}</p></div>
    <div class="due-bar">
-     <span>Due <b>${esc(fmtStamp(s.end))}</b> · Submitting as <b>${esc(personName(state.who))}</b>${prev?` · already submitted ${esc(fmtStamp(prev.submittedAt))}; submitting again adds a new version`:''}</span>
+     <span>Submitting as <b>${esc(personName(state.who))}</b>${prev?` · already submitted ${esc(fmtStamp(prev.submittedAt))}; submitting again adds a new version`:''}</span>
      <label for="simTime">Submission time (demo)<input type="datetime-local" id="simTime" value="${nowIso()}"></label>
      <span id="dueStatus"></span>
    </div>`+
    F.fields.map(f=>{
-     if(f.type==='section')return `<div class="q-section"><h3>${esc(f.label)}</h3>${f.help?`<p>${esc(f.help)}</p>`:''}</div>`;
+     if(f.type==='section')return '';
      const lbl=`${esc(f.label)}${f.required?'<span class="req" aria-label="required">*</span>':''}`;
      const single=!['radio','checkbox','scale','rating','mcgrid','cbgrid'].includes(f.type);
      return `<div class="q" id="q-${f.id}"><label class="q-label" ${single?`for="in-${f.id}"`:''}>${lbl}</label>${inputFor(f,F)}<span class="err" id="err-${f.id}" hidden></span></div>`;
@@ -1226,17 +1553,30 @@ function renderSheet(){
    `<div class="sheet-foot"><button class="btn" type="submit">Submit ${esc(F.title)}</button><button class="btn ghost" type="reset">Clear</button><button class="btn ghost" type="button" id="closeSheet">Close</button></div>`;
   $('#dueStatus').innerHTML=dueStatus();
 }
-$('#collectWho').addEventListener('change',e=>{ state.who=e.target.value; state.open=null; state.rating=null; save(); renderCollect(); });
-$('#taskList').addEventListener('click',e=>{ const b=e.target.closest('[data-sid]'); if(!b)return;
-  state.open={sid:b.dataset.sid,fid:b.dataset.fid}; save(); renderCollect(); requestAnimationFrame(()=>$('#fillForm').scrollIntoView({behavior:'smooth',block:'start'})); });
-$('#fillForm').addEventListener('click',e=>{ if(e.target.id==='closeSheet'){ state.open=null; save(); renderCollect(); } });
+$('#fillForm').addEventListener('click',e=>{ if(e.target.id==='closeSheet'){ state.open=null; save(); renderOccPanel(); } });
 $('#fillForm').addEventListener('input',()=>{ const d=$('#dueStatus'); if(d)d.innerHTML=dueStatus(); });
 $('#fillForm').addEventListener('change',e=>{
   if(e.target.type!=='file')return; const ul=document.getElementById('files-'+e.target.name);
   ul.innerHTML=[...e.target.files].map(x=>`<li>${esc(x.name)} <span class="mono">${fmtSize(x.size)}</span></li>`).join('');
 });
 $('#fillForm').addEventListener('reset',()=>setTimeout(()=>{ document.querySelectorAll('.file-list').forEach(u=>u.innerHTML=''); const d=$('#dueStatus'); if(d)d.innerHTML=dueStatus(); }));
-
+$('#fillForm').addEventListener('submit',e=>{
+  e.preventDefault(); const o=state.open, s=openSched(); if(!s)return; const F=formById(o.fid), form=e.target, values={}; let firstBad=null;
+  answerable(F).forEach(f=>{
+    let v=readAnswer(f,form); const err=document.getElementById('err-'+f.id), msg=validate(f,v);
+    err.hidden=!msg; err.textContent=msg; if(msg&&!firstBad)firstBad=f;
+    if(f.type==='number'&&!isBlank(v))v=Number(v);
+    if(f.type==='url'&&!isBlank(v)&&!/^https?:\/\//i.test(v))v='https://'+v;
+    values[f.id]=v;
+  });
+  if(firstBad){ document.getElementById('q-'+firstBad.id)?.scrollIntoView({behavior:'smooth',block:'center'}); toast('Some answers need fixing'); return; }
+  const stamp=simNow();
+  recordSystem(values,stamp,o.due);
+  state.responses.push({id:uid('r_'),scheduleId:s.id,due:o.due,formId:F.id,by:state.who,submittedAt:stamp,values});
+  const k=progKey(s.id,o.due,state.who); if(occDone(s,o.due,state.who))state.progress[k]={...(state.progress[k]||{}),pct:100,at:nowIso()};
+  state.open=null; save(); renderCalendar(); renderNav(); requestAnimationFrame(()=>$('#occPanel').scrollIntoView({behavior:'smooth',block:'start'}));
+  toast(`${F.title} submitted · ${values.sys_timeliness}`);
+});
 function inputFor(f,F){
   const id=`in-${f.id}`;
   switch(f.type){
@@ -1290,7 +1630,6 @@ function validate(f,v){
   }
   return '';
 }
-/* ---------- 3 responses ---------- */
 function cellHtml(f,v){
   if(f.id==='sys_timeliness')return `<span class="badge ${v==='Late'?'late':'ok'}">${esc(v)}</span>`;
   if(f.id==='sys_hours_late')return v?fmt(Number(v))+' h':'–';
@@ -1311,69 +1650,27 @@ function cellHtml(f,v){
     default: return esc(v);
   }
 }
-$('#fillForm').addEventListener('submit',e=>{
-  e.preventDefault(); const s=openSched(); if(!s)return; const F=formById(state.open.fid), form=e.target, values={}; let firstBad=null;
-  answerable(F).forEach(f=>{
-    let v=readAnswer(f,form); const err=document.getElementById('err-'+f.id), msg=validate(f,v);
-    err.hidden=!msg; err.textContent=msg; if(msg&&!firstBad)firstBad=f;
-    if(f.type==='number'&&!isBlank(v))v=Number(v);
-    if(f.type==='url'&&!isBlank(v)&&!/^https?:\/\//i.test(v))v='https://'+v;
-    values[f.id]=v;
-  });
-  if(firstBad){ document.getElementById('q-'+firstBad.id)?.scrollIntoView({behavior:'smooth',block:'center'}); toast('Some answers need fixing'); return; }
-  const stamp=simNow();
-  recordSystem(values,stamp,s);
-  state.responses.push({id:uid('r_'),scheduleId:s.id,formId:F.id,by:state.who,submittedAt:stamp,values});
-  state.open=null; save(); renderCollect(); renderSteps(); window.scrollTo({top:0,behavior:'smooth'});
-  toast(`${F.title} submitted · ${values.sys_timeliness}`);
-});
-
-/* ---------- 4 responses ---------- */
-const RESP_META=[{id:'t_task',label:'Task',type:'text'},{id:'sys_form',label:'Form',type:'text'},{id:'t_assignee',label:'Submitted by',type:'text'},{id:'t_dept',label:'Department',type:'text'},{id:'t_reviewer',label:'Reviewer 1',type:'text'},{id:'t_due',label:'End time stamp',type:'timestamp'}];
-function accCell(r){ const ss=setupsFor(r); if(!ss.length)return '<span class="dim">No rater set</span>';
-  return ss.map(a=>{ const rt=r.ratings?.[a.id]; return `<span class="acc-line">${esc(a.kpi)}: ${rt?`<b>${rt.score}%</b> <span class="dim">by ${esc(personName(rt.by))}</span>${rt.comment?` <span class="dim" title="${esc(rt.comment)}">(comment)</span>`:''}`:'<span class="badge closed">Pending</span>'}</span>`; }).join('<br>'); }
-function renderResponses(){
-  const F=formById(state.respFilter)||curForm(); state.respFilter=F.id;
-  $('#respForm').innerHTML=state.forms.map(x=>`<option value="${x.id}" ${x.id===F.id?'selected':''}>${esc(x.title)}</option>`).join('');
-  const R=state.responses.filter(r=>r.formId===F.id);
-  const cols=[...RESP_META.filter(f=>f.id!=='sys_form'),...(isAccForm(F.id)?[{id:'acc_col',label:'Accuracy',type:'acc'}]:[]),...answerable(F),...SYS];
-  const late=R.filter(r=>r.values.sys_timeliness==='Late').length, ns=R.filter(r=>r.sample).length;
-  $('#respSub').innerHTML=`${R.length} rows · <span class="badge late">${late} late</span>
-    ${ns?` · <span class="pill sample">${ns} sample rows</span> are example data.`:''} Task, assignee and End time stamp come from the schedule each row was submitted under.`;
-  if(!R.length){$('#respTable').innerHTML='<p class="empty">No responses to this form yet. Submit one in Collect.</p>';return;}
-  const shown=R.slice().reverse().slice(0,400);
-  $('#respTable').innerHTML=`<table class="resp"><thead><tr><th>#</th>${cols.map(f=>`<th class="${f.type==='number'?'num':''}">${esc(f.label)}</th>`).join('')}<th></th></tr></thead><tbody>`+
-   shown.map((r,i)=>`<tr><td class="mono">${R.length-i}</td>${cols.map(f=>`<td class="${f.type==='number'?'num':''}">${(f.id==='acc_col'?accCell(r):cellHtml(f,RESP_META.some(m=>m.id===f.id)?valueOf(r,f):r.values[f.id]))}</td>`).join('')}
-     <td><button class="linkbtn del" data-del="${r.id}">Delete</button></td></tr>`).join('')+'</tbody></table>'+
-   (R.length>shown.length?`<p class="empty">Showing the latest ${shown.length} of ${R.length} rows.</p>`:'');
-}
-$('#respForm').addEventListener('change',e=>{ state.respFilter=e.target.value; save(); renderResponses(); });
-$('#respTable').addEventListener('click',e=>{
-  const b=e.target.closest('[data-del]'); if(!b)return;
-  state.responses=state.responses.filter(r=>r.id!==b.dataset.del); save(); renderResponses(); renderSteps(); toast('Response deleted');
-});
-
-/* ---------- 5 pivot ---------- */
+/* ---------- Pivot & Charts ---------- */
 function renderPicker(){
   const cur=pivotForm()?.id;
-  $('#formPicker').innerHTML=state.forms.map(F=>{ const n=state.responses.filter(r=>r.formId===F.id).length, k=state.schedules.filter(x=>x.formIds.includes(F.id)).length;
-    return `<label class="pick"><input type="radio" name="pivotForm" value="${F.id}" id="pick-${F.id}" ${F.id===cur?'checked':''}>
-      <span>${esc(F.title)}<small>${answerable(F).length} questions · in ${k} schedule${k===1?'':'s'} · ${n} responses</small></span></label>`; }).join('');
-  const F=pivotForm(), n=state.responses.filter(r=>r.formId===F?.id).length;
-  $('#pickerNote').textContent=F?`${n} responses to ${F.title}`:'';
+  $('#pvForm').innerHTML=state.forms.map(F=>{ const n=state.responses.filter(r=>r.formId===F.id).length; return `<option value="${F.id}" ${F.id===cur?'selected':''}>${esc(F.title)}</option>`; }).join('');
 }
-$('#formPicker').addEventListener('change',e=>{ if(e.target.name!=='pivotForm')return; state.pivot.formId=e.target.value; save(); renderPicker(); renderPivotControls(); renderPivot(); });
+$('#pvForm').addEventListener('change',e=>{ state.pivot.formId=e.target.value; state.pivot.filters={}; pivotChanged(); });
 const groupable=()=>pivotFields().filter(f=>!['number','paragraph'].includes(f.type));
 const numeric=()=>pivotFields().filter(f=>NUMERIC_TYPES.includes(f.type));
 const isMeasure=id=>MEASURES.some(m=>m.id===id);
 const SEP='\u001f';
+const GRANS=[['day','Day'],['week','Week'],['month','Month'],['quarter','Quarter'],['half','Half-year'],['year','Year']];
+const dateFields=()=>pivotFields().filter(f=>isDateLike(f));
 function fixPivot(){
   if(state.pivot.value==='m_accuracy'&&!isAccForm(pivotForm()?.id))state.pivot.value='';
-  const p=state.pivot, g=groupable(), ok=id=>g.some(f=>f.id===id); p.gran=p.gran||'week';
+  const p=state.pivot, g=groupable(), ok=id=>g.some(f=>f.id===id); p.gran=p.gran||'month';
   const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
   p.rows=[...new Set(arr(p.rows).filter(ok))]; p.cols=[...new Set(arr(p.cols).filter(ok))].filter(id=>!p.rows.includes(id));
   if(!p.rows.length)p.rows=[ok('t_assignee')?'t_assignee':g[0]?.id].filter(Boolean);
   p.filters=p.filters||{};
+  p.range=p.range||{field:'t_due',from:'',to:''};
+  if(!dateFields().some(f=>f.id===p.range.field))p.range.field='t_due';
   if(p.value&&!isMeasure(p.value)&&!numeric().some(f=>f.id===p.value))p.value='';
 }
 function optGroup(list,sel){
@@ -1386,34 +1683,43 @@ const filterBtn=f=>{ const n=hiddenCount(f.id);
   return `<button type="button" class="fbtn ${n?'on':''}" data-filter="${f.id}" aria-label="Filter ${esc(f.label)}${n?`, ${n} hidden`:''}" title="Filter ${esc(f.label)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.6 5.4V13l-2.8 1.2V8.4z" fill="currentColor"/></svg>${n?`<span>${n}</span>`:''}</button>`; };
 function renderPivotControls(){
   MEASURES=ALL_MEASURES.filter(m=>m.id!=='m_accuracy'||isAccForm(pivotForm()?.id));
-  fixPivot(); const p=state.pivot, n=pivotForm()?1:0;
+  fixPivot(); const p=state.pivot;
   const txt=ids=>ids.length?`${ids.length>1?`<span class="n">${ids.length}</span>`:''}${ids.map(id=>esc(pfById(id)?.label||'')).join(' › ')}`:'<span class="dim">None</span>';
   $('#pvRowsTxt').innerHTML=txt(p.rows); $('#pvColsTxt').innerHTML=txt(p.cols);
   $('#pvRowsBtn').title=p.rows.map(id=>pfById(id)?.label).join(' › '); $('#pvColsBtn').title=p.cols.map(id=>pfById(id)?.label).join(' › ')||'None';
   if(zoneOpen)renderZonePop();
   $('#pvVal').innerHTML=`<optgroup label="Compliance"><option value="" ${!p.value?'selected':''}>Count of responses</option>${MEASURES.map(m=>`<option value="${m.id}" ${p.value===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`+optGroup(numeric(),p.value);
   $('#pvAgg').value=p.agg; $('#pvAgg').disabled=!p.value||isMeasure(p.value);
-  $('#pvGran').value=p.gran;
+  $('#pvGran').innerHTML=GRANS.map(([v,l])=>`<option value="${v}" ${p.gran===v?'selected':''}>${l}</option>`).join('');
+  $('#rgField').innerHTML=dateFields().map(f=>`<option value="${f.id}" ${p.range.field===f.id?'selected':''}>${esc(f.label)}</option>`).join('');
+  $('#rgFrom').value=p.range.from||''; $('#rgTo').value=p.range.to||''; $('#rgClear').hidden=!(p.range.from||p.range.to);
   const dims=[...p.rows,...p.cols].map(pfById).filter(Boolean);
-  $('#granWrap').hidden=!dims.some(isDateLike);
   const active=dims.filter(f=>hiddenCount(f.id));
   $('#pvFilters').innerHTML=active.length?`Filtered: ${active.map(f=>`<b>${esc(f.label)}</b> (${hiddenCount(f.id)} hidden)`).join(', ')} · <button type="button" class="linkbtn" id="clearFilters">Clear all filters</button>`:'';
-  const multi=dims.some(f=>f.type==='checkbox');
-  $('#pvNote').innerHTML=(!n?'<b>Pick a form above.</b> ':'')+
+  const multi=dims.some(f=>f.type==='checkbox'), rgf=pfById(p.range.field);
+  $('#pvNote').innerHTML=
     (p.value==='m_complete'
-    ?`<b>Completeness</b> = submissions of this form ÷ submissions required. Every schedule that includes this form requires each of its assignees to submit it once. Submitting twice for the same task counts once. Late submissions still count as submitted.${dims.some(f=>!f.taskAttr)?' <b>Note:</b> grouping by a question answer or by Timeliness splits only the submitted side, so those cells show what share of the required submissions fall in each group.':''}`
-    :p.value==='m_accuracy'?'<b>Accuracy</b> = average of the raters\' scores (0–100%) on the latest submission per person and task. Submissions waiting for a rating show as pending and are not counted until rated.'
-    :p.value==='m_ontime'?'<b>On-time rate</b> = submissions made by the task\'s End time stamp ÷ all submissions.'
-    :p.value?'':'Counting responses. Pick Completeness % or On-time rate % under Values, or a number, scale or rating question to sum or average it.')
-    +' Tick several fields under Rows or Columns to nest them. Use the filter button next to a field name in the table to choose which values to show.'
-    +(multi?' A checkbox question can have several answers, so one response can appear in more than one row or column. Totals count each response once.':'');
+    ?`<b>Completeness</b> = submissions ÷ submissions required. Each deadline of a schedule that includes this form requires each assignee to submit it once. Submitting twice for the same deadline counts once, and late submissions still count.${dims.some(f=>!f.taskAttr)?' Grouping by a question answer or by Timeliness splits only the submitted side.':''}${(p.range.from||p.range.to)&&rgf&&!rgf.taskAttr?' The date range only limits required submissions when it is on Deadline.':''}`
+    :p.value==='m_accuracy'?'<b>Accuracy</b> = average of the raters\' scores (0–100%) on the latest submission per person and deadline. Submissions waiting for a rating show as pending and are not counted until rated.'
+    :p.value==='m_ontime'?'<b>On-time rate</b> = submissions made by their deadline ÷ all submissions.'
+    :p.value?'':'Counting responses. Pick Completeness %, On-time rate % or Accuracy % under Values, or a number, scale or rating question to sum or average it.')
+    +(multi?' A field with several values (checkboxes, reviewers, KPIs) can put one response in more than one row or column. Totals count it once.':'');
 }
-function pivotChanged(){ save(); renderPivotControls(); if(state.tab==='viz')renderViz(); else renderPivot(); }
+function pivotChanged(){ save(); renderPivotControls(); renderViz(); }
 ['pvVal','pvAgg','pvGran'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{
   const k={pvVal:'value',pvAgg:'agg',pvGran:'gran'}[id]; state.pivot[k]=e.target.value;
   if(k==='value'&&e.target.value){ const f=pfById(e.target.value); if(f&&(f.type==='scale'||f.type==='rating'))state.pivot.agg='avg'; }
   pivotChanged();
 }));
+$('#rgField').addEventListener('change',e=>{ state.pivot.range.field=e.target.value; pivotChanged(); });
+$('#rgFrom').addEventListener('change',e=>{ state.pivot.range.from=e.target.value; pivotChanged(); });
+$('#rgTo').addEventListener('change',e=>{ state.pivot.range.to=e.target.value; pivotChanged(); });
+$('#rgClear').addEventListener('click',()=>{ state.pivot.range.from=''; state.pivot.range.to=''; pivotChanged(); });
+document.querySelectorAll('[data-rgq]').forEach(b=>b.addEventListener('click',()=>{
+  const t=nowIso().slice(0,10), y=+t.slice(0,4), m=+t.slice(5,7), q=Math.floor((m-1)/3);
+  const r={thisMonth:[`${t.slice(0,7)}-01`,dayStr(new Date(y,m,0))],thisQuarter:[`${y}-${pad(q*3+1)}-01`,dayStr(new Date(y,q*3+3,0))],thisYear:[`${y}-01-01`,`${y}-12-31`],last30:[addDays(t,-30),t]}[b.dataset.rgq];
+  state.pivot.range.from=r[0]; state.pivot.range.to=r[1]; pivotChanged(); }));
+function renderAnalysis(){ renderPicker(); renderPivotControls(); renderViz(); renderAssign(); }
 /* Rows / Columns picker: a checklist popover, applied immediately */
 let zoneOpen=null;
 function renderZonePop(){
@@ -1432,9 +1738,7 @@ function openZone(z){
   const btn=$(z==='rows'?'#pvRowsBtn':'#pvColsBtn'), pop=$('#fpop');
   fpopField=null; zoneOpen=z; renderZonePop(); pop.hidden=false;
   document.querySelectorAll('[data-zonebtn]').forEach(b=>b.setAttribute('aria-expanded',b===btn?'true':'false'));
-  const r=btn.getBoundingClientRect(), w=pop.offsetWidth, h=pop.offsetHeight;
-  const top=r.bottom+6; pop.style.maxHeight=Math.max(300,innerHeight-top-16)+'px';
-  pop.style.left=Math.max(16,Math.min(r.left,innerWidth-w-16))+'px'; pop.style.top=top+'px';
+  placePop(pop,btn);
 }
 $('#pvCtl').addEventListener('click',e=>{ const b=e.target.closest('[data-zonebtn]'); if(!b)return; e.stopPropagation();
   if(zoneOpen===b.dataset.zonebtn&&!$('#fpop').hidden){ closeFilter(); return; } openZone(b.dataset.zonebtn); });
@@ -1457,7 +1761,7 @@ let fpopField=null;
 function allKeysFor(f){
   const fid=pivotForm()?.id, counts=new Map();
   state.responses.filter(r=>r.formId===fid).forEach(r=>keysOfR(f,r).forEach(k=>counts.set(k,(counts.get(k)||0)+1)));
-  if(f.taskAttr) selScheds().forEach(s=>s.assignees.forEach(by=>keysOfR(f,{scheduleId:s.id,formId:fid,by,values:{}}).forEach(k=>{ if(!counts.has(k))counts.set(k,0); })));
+  if(f.taskAttr) occTriples(fid).forEach(t=>keysOfR(f,t).forEach(k=>{ if(!counts.has(k))counts.set(k,0); }));
   return sortKeys(f,[...counts.keys()]).map(k=>[k,counts.get(k)]);
 }
 function openFilter(id,anchor){
@@ -1469,13 +1773,10 @@ function openFilter(id,anchor){
     <div class="fpop-list">${keys.map(([k,c],i)=>`<label class="fpop-item" data-label="${esc(labelOf(f,k).toLowerCase())}"><input type="checkbox" id="fk-${i}" value="${esc(k)}" ${hidden.has(k)?'':'checked'}><span>${esc(labelOf(f,k))}</span><span class="mono">${c}</span></label>`).join('')}</div>
     <div class="fpop-foot"><button type="button" class="btn small" id="fpopApply">Apply</button><button type="button" class="btn ghost small" id="fpopCancel">Cancel</button></div>`;
   pop.hidden=false;
-  const r=anchor.getBoundingClientRect(), w=pop.offsetWidth, h=pop.offsetHeight;
-  let left=Math.min(r.left, innerWidth-w-16), top=r.bottom+6;
-  if(top+h>innerHeight-12)top=Math.max(12,r.top-h-6);
-  pop.style.left=Math.max(16,left)+'px'; pop.style.top=top+'px';
+  placePop(pop,anchor);
   (document.getElementById('fpopSearch')||pop.querySelector('input'))?.focus();
 }
-function closeFilter(){ $('#fpop').hidden=true; $('#fpop').style.maxHeight=''; fpopField=null; zoneOpen=null; document.querySelectorAll('[data-zonebtn]').forEach(b=>b.setAttribute('aria-expanded','false')); }
+function closeFilter(){ if(!$('#fpop'))return; $('#fpop').hidden=true; $('#fpop').style.maxHeight=''; fpopField=null; zoneOpen=null; document.querySelectorAll('[data-zonebtn]').forEach(b=>b.setAttribute('aria-expanded','false')); }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-filter]'); if(b){ e.stopPropagation(); if(fpopField===b.dataset.filter&&!$('#fpop').hidden){closeFilter();return;} openFilter(b.dataset.filter,b); return; }
   const pop=$('#fpop'); if(pop.hidden)return;
@@ -1495,11 +1796,13 @@ document.addEventListener('input',e=>{ if(e.target.id!=='fpopSearch')return; con
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#fpop').hidden)closeFilter(); });
 window.addEventListener('scroll',()=>{ if(!$('#fpop').hidden)closeFilter(); },{passive:true});
 function weekStart(day){ const d=new Date(day+'T00:00:00'); d.setDate(d.getDate()-((d.getDay()+6)%7)); return dayStr(d); }
+function dateKey(day,g){ const y=day.slice(0,4), m=+day.slice(5,7);
+  return g==='year'?y:g==='half'?`${y}-H${m<=6?1:2}`:g==='quarter'?`${y}-Q${Math.ceil(m/3)}`:g==='month'?day.slice(0,7):g==='week'?'W'+weekStart(day):day; }
 function keyOf(f,v){
   if(!f)return 'Total';
   if(f.type==='file')return Array.isArray(v)&&v.length?'File uploaded':'No file';
   if(isBlank(v))return '(blank)';
-  if(isDateLike(f)){ const day=String(v).slice(0,10), g=state.pivot.gran; return g==='month'?day.slice(0,7):g==='week'?'W'+weekStart(day):day; }
+  if(isDateLike(f))return dateKey(String(v).slice(0,10),state.pivot.gran);
   if(f.type==='time')return String(v).slice(0,2)+':00';
   if(f.type==='url'){ try{ return new URL(v).hostname.replace(/^www\./,''); }catch(e){ return String(v); } }
   return String(v);
@@ -1511,14 +1814,11 @@ function keysOfR(f,r){
   const v=valueOf(r,f);
   return f.type==='checkbox'?(Array.isArray(v)&&v.length?v.map(String):['(blank)']):[keyOf(f,v)];
 }
-function bucketRange(f,k){
-  if(!isDateLike(f)||k==null||k==='(blank)')return null;
-  if(/^\d{4}-\d{2}$/.test(k)){ const y=+k.slice(0,4), m=+k.slice(5); return [`${k}-01`,dayStr(new Date(y,m,0))]; }
-  if(k[0]==='W')return [k.slice(1),addDays(k.slice(1),6)];
-  return [k,k];
-}
 function labelOf(f,k){
   if(isDateLike(f)&&k!=='(blank)'){
+    if(/^\d{4}$/.test(k))return k;
+    if(/^\d{4}-H\d$/.test(k))return `H${k.slice(-1)} ${k.slice(0,4)}`;
+    if(/^\d{4}-Q\d$/.test(k))return `Q${k.slice(-1)} ${k.slice(0,4)}`;
     if(/^\d{4}-\d{2}$/.test(k))return MONTHS[+k.slice(5)-1]+' '+k.slice(0,4);
     if(k[0]==='W')return 'Week of '+fmtShort(k.slice(1))+', '+k.slice(1,5);
     return fmtDate(k);
@@ -1534,20 +1834,25 @@ function sortKeys(f,keys){
   if(f.options){const o=f.options;return keys.sort((a,b)=>last(a)-last(b)||((o.indexOf(a)<0?999:o.indexOf(a))-(o.indexOf(b)<0?999:o.indexOf(b)))||a.localeCompare(b));}
   return keys.sort((a,b)=>last(a)-last(b)||a.localeCompare(b,undefined,{numeric:true}));
 }
+/* one required submission per (schedule, deadline, assignee) for the pivot form */
+const occTriples=fid=>selScheds().flatMap(s=>s.deadlines.flatMap(due=>s.assignees.map(by=>({scheduleId:s.id,due,formId:fid,by,values:{}}))));
+function rangeTest(){
+  const rg=state.pivot.range||{}; if(!rg.from&&!rg.to)return {any:false,ok:()=>true,onTask:false};
+  const f=pfById(rg.field); if(!f)return {any:false,ok:()=>true,onTask:false};
+  return {any:true,onTask:!!f.taskAttr,ok:x=>{ if(f.sources&&!inForm(f,x))return false; const v=valueOf(x,f); if(isBlank(v))return false; const d=String(v).slice(0,10); return (!rg.from||d>=rg.from)&&(!rg.to||d<=rg.to); }};
+}
 function computePivot(){
-  const p=state.pivot, S=selScheds(), fid=pivotForm()?.id;
+  const p=state.pivot, fid=pivotForm()?.id;
   const rfs=(p.rows||[]).map(pfById).filter(Boolean), cfs=(p.cols||[]).map(pfById).filter(Boolean);
   const special=p.value==='m_complete'?'complete':p.value==='m_ontime'?'ontime':p.value==='m_accuracy'?'accuracy':null;
   const vf=!special&&p.value?pfById(p.value):null;
   const agg=special?'pct':vf?p.agg:'count';
-  const filt=p.filters||{};
+  const filt=p.filters||{}, RG=rangeTest();
   const keysF=(f,x)=>keysOfR(f,x).filter(k=>!(filt[f.id]||[]).includes(k));
-  /* every combination of keys for a list of fields, e.g. ["Finance␟Ben Reyes"] */
   const combos=(fs,x)=>{ if(!fs.length)return ['Total']; let acc=[[]];
     for(const f of fs){ const ks=keysF(f,x); if(!ks.length)return []; acc=acc.flatMap(a=>ks.map(k=>[...a,k])); }
     return acc.map(a=>a.join(SEP)); };
-  const R0=state.responses.filter(r=>r.formId===fid);
-  /* accuracy works on (latest submission, accuracy set up) pairs */
+  const R0=state.responses.filter(r=>r.formId===fid&&RG.ok(r));
   const R=special==='accuracy'?latestOnly(R0).flatMap(r=>setupsFor(r).map(a=>({...r,_setup:a}))):R0;
   const pend={}, pendRow={}, pendCol={}; let pendAll=0;
   const A=()=>({sum:0,count:0,min:Infinity,max:-Infinity}); const add=(a,x)=>{a.sum+=x;a.count++;a.min=Math.min(a.min,x);a.max=Math.max(a.max,x);};
@@ -1570,28 +1875,25 @@ function computePivot(){
   if(special==='accuracy'){ const t=(a,pn)=>{ const n=a?.count||0; return (n||pn)?{txt:`${n} rated${pn?` · ${pn} pending`:''}`}:null; };
     P.detail=(r,c)=>r==null&&c==null?t(grand,pendAll):r==null?t(colT[c],pendCol[c]):c==null?t(rowT[r],pendRow[r]):t(cells[r]?.[c],pend[r+'|'+c]); }
   if(special==='complete'&&rfs.length){
-    /* Required = one submission of this form per (schedule, assignee). Submitted = those with at least one response. */
-    const triples=S.flatMap(s=>s.assignees.map(by=>({scheduleId:s.id,formId:fid,by,values:{}})));
-    const reqKey=new Set(triples.map(t=>t.scheduleId+'|'+t.by));
+    const triples=occTriples(fid).filter(t=>!RG.onTask||RG.ok(t));
+    const kk=x=>x.scheduleId+'|'+x.due+'|'+x.by, reqKey=new Set(triples.map(kk));
     const dims=[...rfs,...cfs];
     const tOK=t=>dims.filter(f=>f.taskAttr).every(f=>keysF(f,t).length);
     const rOK=r=>dims.every(f=>keysF(f,r).length);
-    const T=triples.filter(tOK), RR=R.filter(r=>reqKey.has(r.scheduleId+'|'+r.by)&&rOK(r));
-    /* people with nothing submitted still get a row when every row field comes from the schedule */
+    const T=triples.filter(tOK), RR=R.filter(r=>reqKey.has(kk(r))&&rOK(r));
     if(rfs.every(f=>f.taskAttr)&&cfs.every(f=>f.taskAttr))T.forEach(t=>{ combos(rfs,t).forEach(k=>rs.add(k)); combos(cfs,t).forEach(k=>cs.add(k)); });
     const match=(fs,comp,x,isT)=>{ if(comp==null)return true; const parts=comp.split(SEP); return fs.every((f,i)=>(isT&&!f.taskAttr)||keysF(f,x).includes(parts[i])); };
     const memo={};
     const stat=(rk,ck)=>{
       const key=rk+'¦'+ck; if(memo[key])return memo[key];
       const exp=T.filter(t=>match(rfs,rk,t,true)&&match(cfs,ck,t,true)).length;
-      const n=new Set(RR.filter(r=>match(rfs,rk,r)&&match(cfs,ck,r)).map(r=>r.scheduleId+'|'+r.by)).size;
+      const n=new Set(RR.filter(r=>match(rfs,rk,r)&&match(cfs,ck,r)).map(kk)).size;
       return memo[key]={n,exp,pct:exp?n/exp*100:null};
     };
     const C=c=>cfs.length?c:null;
     P.value=(r,c)=>stat(r,C(c)).pct; P.rowTotal=r=>stat(r,null).pct; P.colTotal=c=>stat(null,C(c)).pct; P.grand=stat(null,null).pct;
     P.detail=(r,c)=>stat(r,c==null?null:C(c));
   }
-  /* sort combined keys level by level, using each field's own order */
   const sortComp=(fs,keys)=>{ if(!fs.length)return keys;
     const orders=fs.map((f,i)=>{ const o=new Map(); sortKeys(f,[...new Set(keys.map(k=>k.split(SEP)[i]))]).forEach((k,j)=>o.set(k,j)); return o; });
     return keys.sort((a,b)=>{ const A=a.split(SEP), B=b.split(SEP); for(let i=0;i<fs.length;i++){ const d=orders[i].get(A[i])-orders[i].get(B[i]); if(d)return d; } return 0; }); };
@@ -1638,7 +1940,39 @@ function pivotHtml(P,heat){
   h+=`<tr class="total"><td colspan="${nr}">Total</td>${nc?P.colKeys.map(c=>`<td class="num${gs.has(c)?' gs':''}">${fmt(P.colTotal(c),P.agg)}${sub(null,c)}</td>`).join(''):''}<td class="num">${fmt(P.grand,P.agg)}${sub(null,null)}</td></tr></tbody></table>`;
   return h;
 }
-function renderPivot(){ $('#pivotTable').innerHTML=pivotHtml(computePivot(),false); }
+/* ---------- output: table or chart from the current pivot ---------- */
+let chart=null;
+function renderTiles(){
+  $('#tiles').innerHTML=VIZ.map(([k,l,svg])=>`<button type="button" class="tile" data-viz="${k}" aria-pressed="${state.viz===k}"><svg viewBox="0 0 34 26" fill="currentColor" aria-hidden="true">${svg}</svg>${l}</button>`).join('');
+}
+$('#tiles').addEventListener('click',e=>{ const b=e.target.closest('[data-viz]'); if(!b)return; state.viz=b.dataset.viz; save(); renderViz(); });
+function renderViz(){
+  renderTiles(); const P=computePivot(), type=state.viz, rg=state.pivot.range||{};
+  const gran=[...P.rfs,...P.cfs].some(isDateLike)?` Dates grouped by ${GRANS.find(g=>g[0]===state.pivot.gran)?.[1].toLowerCase()}.`:'';
+  const fl=[...P.rfs,...P.cfs].filter(f=>hiddenCount(f.id)).map(f=>esc(f.label));
+  const rgTxt=(rg.from||rg.to)?` ${esc(pfById(rg.field)?.label||'Date')} ${rg.from&&rg.to?`from ${esc(fmtDate(rg.from))} to ${esc(fmtDate(rg.to))}`:rg.from?`from ${esc(fmtDate(rg.from))}`:`up to ${esc(fmtDate(rg.to))}`}.`:'';
+  $('#vizSummary').innerHTML=P.rfs.length?`<b>${esc(measureName(P))}</b> by <b>${P.rfs.map(f=>esc(f.label)).join(' › ')}</b>${P.cfs.length?` split by <b>${P.cfs.map(f=>esc(f.label)).join(' › ')}</b>`:''} · ${esc(pivotForm()?.title||'')}.${gran}${rgTxt}${fl.length?` Filtered on ${fl.join(', ')}.`:''}
+    ${(type==='pie'||type==='doughnut')&&P.cfs.length?' Pie and doughnut use the row totals.':''}${type==='stacked'&&P.agg==='pct'?' Stacking percentages adds them up, so a plain bar or line usually reads better.':''}`:'Set up the pivot first.';
+  const F0=pivotForm()||curForm(), s0=selScheds()[0]||state.schedules[0];
+  $('#devJson').textContent=JSON.stringify({
+    person:personById(state.who),
+    exampleSchedule:s0||null,
+    exampleFormSchema:{id:F0.id,title:F0.title,fields:F0.fields},
+    exampleResponse:state.responses.filter(r=>r.formId===F0.id).slice(-1)[0]||null,
+    exampleProgress:Object.entries(state.progress).slice(0,1).map(([k,v])=>({key:k,...v}))[0]||null,
+    view:{...pivotCfg(),chartType:type},
+    exampleAccuracySetUp:state.accuracy[0]||null,
+    exampleSavedChart:state.views[0]||null
+  },null,2);
+  if(chart){chart.destroy();chart=null;}
+  const isTable=type==='table', noData=!P.rfs.length||!P.rowKeys.length;
+  $('#pivotTable').hidden=!isTable; $('#chartBox').hidden=isTable||noData; $('#chartMsg').hidden=true; $('#copyCsv').hidden=!isTable;
+  if(isTable){ $('#pivotTable').innerHTML=pivotHtml(P,false); return; }
+  if(noData){ $('#chartMsg').hidden=false; $('#chartMsg').textContent='Nothing to chart yet. Add responses, widen the date range or loosen the filters.'; return; }
+  if(!window.Chart){ $('#chartBox').hidden=true; $('#chartMsg').hidden=false; $('#chartMsg').textContent='The charting library did not load. Check your connection and reload the page.'; return; }
+  chart=drawChart($('#chartCanvas'),P,type);
+}
+const renderPivot=renderViz;
 $('#copyCsv').addEventListener('click',()=>{
   const P=computePivot(); if(!P.rfs.length||!P.rowKeys.length)return; const q=s=>`"${String(s).replace(/"/g,'""')}"`; const n=v=>v==null?'':Math.round(v*100)/100;
   const cols=P.cfs.length?P.colKeys:[];
@@ -1647,39 +1981,31 @@ $('#copyCsv').addEventListener('click',()=>{
   lines.push([q('Total'),...P.rfs.slice(1).map(()=>''),...cols.map(c=>n(P.colTotal(c))),n(P.grand)].join(','));
   navigator.clipboard?.writeText(lines.join('\n')).then(()=>toast('Pivot copied as CSV')).catch(()=>toast('Copy was blocked. Select the table and copy it instead.'));
 });
-/* ---------- 5 visualize ---------- */
-let chart=null;
-function renderTiles(){
-  $('#tiles').innerHTML=VIZ.map(([k,l,svg])=>`<button type="button" class="tile" data-viz="${k}" aria-pressed="${state.viz===k}"><svg viewBox="0 0 34 26" fill="currentColor" aria-hidden="true">${svg}</svg>${l}</button>`).join('');
+
+/* ---------- responses ---------- */
+const RESP_META=[{id:'t_task',label:'Task',type:'text'},{id:'t_due',label:'Deadline',type:'timestamp'},{id:'t_assignee',label:'Submitted by',type:'text'},{id:'t_dept',label:'Department',type:'text'},{id:'t_reviewer',label:'Reviewers',type:'checkbox'}];
+function accCell(r){ const ss=setupsFor(r); if(!ss.length)return '<span class="dim">No rater set</span>';
+  return ss.map(a=>{ const rt=r.ratings?.[a.id]; return `<span class="acc-line">${esc(a.kpi)}: ${rt?`<b>${rt.score}%</b> <span class="dim">by ${esc(personName(rt.by))}</span>${rt.comment?` <span class="dim" title="${esc(rt.comment)}">(comment)</span>`:''}`:'<span class="badge closed">Pending</span>'}</span>`; }).join('<br>'); }
+function renderResponses(){
+  const F=formById(state.respFilter)||curForm(); state.respFilter=F.id;
+  $('#respForm').innerHTML=state.forms.map(x=>`<option value="${x.id}" ${x.id===F.id?'selected':''}>${esc(x.title)}</option>`).join('');
+  const R=state.responses.filter(r=>r.formId===F.id);
+  const cols=[...RESP_META,...(isAccForm(F.id)?[{id:'acc_col',label:'Accuracy',type:'acc'}]:[]),...answerable(F),...SYS];
+  const late=R.filter(r=>r.values.sys_timeliness==='Late').length, ns=R.filter(r=>r.sample).length;
+  $('#respSub').innerHTML=`${R.length} rows · <span class="badge late">${late} late</span>
+    ${ns?` · <span class="pill sample">${ns} sample rows</span> are example data.`:''} Task, deadline and reviewers come from the schedule each row was submitted under.`;
+  if(!R.length){$('#respTable').innerHTML='<p class="empty">No responses to this form yet. Submit one from Schedules.</p>';return;}
+  const shown=R.slice().reverse().slice(0,400);
+  $('#respTable').innerHTML=`<table class="resp"><thead><tr><th>#</th>${cols.map(f=>`<th class="${f.type==='number'?'num':''}">${esc(f.label)}</th>`).join('')}<th></th></tr></thead><tbody>`+
+   shown.map((r,i)=>`<tr><td class="mono">${R.length-i}</td>${cols.map(f=>`<td class="${f.type==='number'?'num':''}">${f.id==='acc_col'?accCell(r):cellHtml(f,RESP_META.some(m=>m.id===f.id)?valueOf(r,f):r.values[f.id])}</td>`).join('')}
+     <td><button class="linkbtn del" data-del="${r.id}">Delete</button></td></tr>`).join('')+'</tbody></table>'+
+   (R.length>shown.length?`<p class="empty">Showing the latest ${shown.length} of ${R.length} rows.</p>`:'');
 }
-$('#tiles').addEventListener('click',e=>{ const b=e.target.closest('[data-viz]'); if(!b)return; state.viz=b.dataset.viz; save(); renderViz(); });
-function renderViz(){
-  renderTiles(); const P=computePivot(), type=state.viz;
-  const gran=[...P.rfs,...P.cfs].some(isDateLike)?` Dates grouped by ${state.pivot.gran}.`:'';
-  const fl=[...P.rfs,...P.cfs].filter(f=>hiddenCount(f.id)).map(f=>esc(f.label));
-  const S=selScheds();
-  const formsTxt=pivotForm()?`<b>${esc(pivotForm().title)}</b>`:'<b>no form</b>';
-  $('#vizSummary').innerHTML=P.rf?`Showing <b>${esc(measureName(P))}</b> by <b>${P.rfs.map(f=>esc(f.label)).join(' › ')}</b>${P.cfs.length?` split by <b>${P.cfs.map(f=>esc(f.label)).join(' › ')}</b>`:''} from ${formsTxt}.${gran}${fl.length?` Filtered on ${fl.join(', ')}.`:''}
-    ${(type==='pie'||type==='doughnut')&&P.cfs.length?' Pie and doughnut use the row totals.':''}${type==='stacked'&&P.agg==='pct'?' Stacking percentages adds them up, so a plain bar or line usually reads better here.':''}`:'Set up the pivot first.';
-  const s0=S[0]||state.schedules[0], F0=pivotForm()||curForm();
-  $('#devJson').textContent=JSON.stringify({
-    people:state.people.slice(0,3).concat([{note:`… ${Math.max(0,state.people.length-3)} more`}]),
-    exampleSchedule:s0||null,
-    exampleFormSchema:{id:F0.id,title:F0.title,fields:F0.fields},
-    exampleResponse:state.responses.filter(r=>r.formId===F0.id).slice(-1)[0]||null,
-    view:{formId:F0.id,rows:state.pivot.rows,columns:state.pivot.cols,filters:state.pivot.filters,value:state.pivot.value||'count',aggregate:P.special?null:P.agg,dateGrouping:state.pivot.gran,chartType:type},
-    exampleAccuracySetUp:state.accuracy[0]||null,
-    exampleSavedChart:state.views[0]||null,
-    completenessRule:'for one form: required = every (schedule containing the form, assignee); submitted = those with at least one response'
-  },null,2);
-  if(chart){chart.destroy();chart=null;}
-  const isTable=type==='table', noData=!P.rfs.length||!P.rowKeys.length;
-  $('#vizTable').hidden=!isTable; $('#chartBox').hidden=isTable||noData; $('#chartMsg').hidden=true;
-  if(isTable){ $('#vizTable').innerHTML=`<div class="tbl-wrap">${pivotHtml(P,true)}</div>`; return; }
-  if(noData){ $('#chartMsg').hidden=false; $('#chartMsg').textContent='Nothing to chart yet. Add responses and set up the pivot.'; return; }
-  if(!window.Chart){ $('#chartBox').hidden=true; $('#chartMsg').hidden=false; $('#chartMsg').textContent='The charting library did not load. Check your connection and reload the page.'; return; }
-  chart=drawChart($('#chartCanvas'),P,type);
-}
+$('#respForm').addEventListener('change',e=>{ state.respFilter=e.target.value; save(); renderResponses(); });
+$('#respTable').addEventListener('click',e=>{
+  const b=e.target.closest('[data-del]'); if(!b)return;
+  state.responses=state.responses.filter(r=>r.id!==b.dataset.del); save(); renderResponses(); renderNav(); toast('Response deleted');
+});
 function drawChart(canvas,P,type){
   const cs=getComputedStyle(document.documentElement), tok=n=>cs.getPropertyValue(n).trim();
   const colors=[1,2,3,4,5,6].map(i=>tok('--c'+i)), fg=tok('--fg'), muted=tok('--muted'), line=tok('--line'), surface=tok('--surface');
@@ -1704,108 +2030,133 @@ function drawChart(canvas,P,type){
       tooltip:{callbacks:{label:c=>{const round=type==='pie'||type==='doughnut';const v=round?c.parsed:(type==='hbar'?c.parsed.x:c.parsed.y);return `${round?c.label:c.dataset.label}: ${fmt(v,P.agg)}`;}}}},
     scales:axes}});
 }
-function rethemeChart(){ if(state.tab==='viz')renderViz(); if(state.tab==='mine')renderMine(); }
+function rethemeChart(){ if(state.tab==='analysis')renderViz(); if(state.tab==='mine')renderMine(); }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',rethemeChart);
 new MutationObserver(rethemeChart).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 /* ---------- saved charts and assignment ----------
-   view: { id, name, config:{formId,rows,cols,value,agg,gran,filters}, viz, people[], positions[], updatedAt }
+   view: { id, name, config:{formId,rows,cols,value,agg,gran,filters,range}, viz, people[], positions[], updatedAt }
    A person sees a view when they are listed in people, or their position is listed in positions. */
-const personPos=id=>personById(id)?.pos||'';
 const allPositions=()=>[...new Set(state.people.map(p=>p.pos).filter(Boolean))].sort();
 const VIZ_LABEL=Object.fromEntries(VIZ.map(v=>[v[0],v[1]]));
 const viewById=id=>state.views.find(v=>v.id===id);
 function withPivot(cfg,fn){ const keep=state.pivot; state.pivot=JSON.parse(JSON.stringify(cfg)); try{ fixPivot(); return fn(); } finally{ state.pivot=keep; } }
-const pivotCfg=()=>{ const p=state.pivot; return JSON.parse(JSON.stringify({formId:p.formId,rows:p.rows,cols:p.cols,value:p.value,agg:p.agg,gran:p.gran,filters:p.filters||{}})); };
-const viewersOf=v=>state.people.filter(p=>v.people.includes(p.id)||v.positions.includes(p.pos));
+const pivotCfg=()=>{ const p=state.pivot; return JSON.parse(JSON.stringify({formId:p.formId,rows:p.rows,cols:p.cols,value:p.value,agg:p.agg,gran:p.gran,filters:p.filters||{},range:p.range||{field:'t_due',from:'',to:''}})); };
 const assignedTags=v=>[...v.positions.map(x=>`<span class="tag pos">${esc(x)}</span>`),...v.people.map(id=>`<span class="tag">${esc(personName(id))}</span>`)].join('')||'<span class="dim">Nobody yet</span>';
 
-let vdraft=null;
-function freshDraft(){ const v=state.editingView&&viewById(state.editingView);
-  vdraft=v?{name:v.name,people:[...v.people],positions:[...v.positions]}:{name:'',people:[],positions:[]}; }
-function renderAssign(){
+/* Save this chart: name the current pivot + chart type */
+let vname=null;
+function renderSaveCard(){
   if(state.editingView&&!viewById(state.editingView))state.editingView=null;
-  if(!vdraft)freshDraft();
-  const d=vdraft, v=state.editingView&&viewById(state.editingView), depts=[...new Set(state.people.map(p=>p.dept))];
-  const chip=(name,val,on,label)=>`<label class="chip"><input type="checkbox" name="${name}" value="${esc(val)}" ${on?'checked':''}> ${esc(label)}</label>`;
-  const who=state.people.filter(p=>d.people.includes(p.id)||d.positions.includes(p.pos));
-  $('#assignCard').innerHTML=`<div class="assign-head"><div><h3>${v?`Editing “${esc(v.name)}”`:'Assign this chart'}</h3>
-      <p class="opt-hint">Saves the current pivot (form, rows, columns, values, filters) and chart type, and shows it to the people you pick in their <b>My charts</b> tab.</p></div>
+  const v=state.editingView&&viewById(state.editingView);
+  if(vname==null)vname=v?v.name:'';
+  $('#saveCard').innerHTML=`<div class="assign-head"><div><h3>${v?`Editing “${esc(v.name)}”`:'Save this chart'}</h3>
+      <p class="opt-hint">Saves the current pivot (form, rows, columns, values, date range, filters) and chart type. Assign it to people below.</p></div>
       ${v?'<button type="button" class="linkbtn" id="vStop">Stop editing</button>':''}</div>
-    <label class="fld" for="vName">Chart name<input type="text" id="vName" value="${esc(d.name)}" placeholder="e.g. Weekly completeness by department"></label>
-    <div class="fld"><span>Positions <span class="opt-hint">Everyone in these positions sees it, including people added later.</span></span>
-      <div class="chips">${allPositions().map(x=>chip('vpos',x,d.positions.includes(x),x)).join('')||'<span class="opt-hint">No positions yet. Add them in the People list under Schedule Set Up.</span>'}</div></div>
-    <div class="fld"><span>Employees</span>
-      <div class="chip-groups">${depts.map(dep=>`<div class="chip-group"><div class="chip-group-head">${esc(dep)}</div><div class="chips">${state.people.filter(p=>p.dept===dep).map(p=>chip('vppl',p.id,d.people.includes(p.id),p.name)).join('')}</div></div>`).join('')}</div></div>
-    <p class="err" id="vErr" hidden></p>
-    <div class="editor-foot">${v?'<button type="button" class="btn" id="vUpdate">Update chart</button><button type="button" class="btn ghost" id="vSaveNew">Save as new chart</button>':'<button type="button" class="btn" id="vSaveNew">Save and assign</button>'}
-      <span class="opt-hint">${who.length?`Visible to ${who.length} ${who.length===1?'person':'people'}: ${who.slice(0,5).map(p=>esc(p.name)).join(', ')}${who.length>5?` and ${who.length-5} more`:''}`:'Pick at least one position or employee.'}</span></div>`;
-  renderSavedViews();
+    <div class="save-row"><label class="fld" for="vName">Chart name<input type="text" id="vName" value="${esc(vname)}" placeholder="e.g. Completeness by month"></label>
+      ${v?'<button type="button" class="btn" id="vUpdate">Update chart</button><button type="button" class="btn ghost" id="vSaveNew">Save as new chart</button>':'<button type="button" class="btn" id="vSaveNew">Save chart</button>'}</div>
+    <p class="err" id="vErr" hidden></p>`;
 }
+$('#saveCard').addEventListener('input',e=>{ if(e.target.id==='vName')vname=e.target.value; });
+$('#saveCard').addEventListener('click',e=>{
+  const id=e.target.id; if(!['vStop','vUpdate','vSaveNew'].includes(id))return;
+  if(id==='vStop'){ state.editingView=null; vname=null; save(); renderAssign(); return; }
+  const er=$('#vErr'), errs=[];
+  if(!(vname||'').trim())errs.push('enter a chart name'); if(!computePivot().rowKeys.length)errs.push('set up a pivot that has data');
+  if(errs.length){ er.hidden=false; er.textContent='To save, '+errs.join(' and ')+'.'; return; }
+  const body={name:vname.trim(),config:pivotCfg(),viz:state.viz,updatedAt:nowIso()};
+  if(id==='vUpdate'){ Object.assign(viewById(state.editingView),body); toast(`“${body.name}” updated`); }
+  else { const v={id:uid('v_'),...body,people:[],positions:[]}; state.views.push(v); state.editingView=v.id;
+    adr.charts=[...new Set([...adr.charts,v.id])]; toast(`“${body.name}” saved. It is selected below, ready to assign.`); }
+  vname=null; save(); renderAssign(); renderNav();
+});
+
+/* Assign charts: many charts to many positions and employees at once */
+const adr={charts:[],positions:[],people:[],mode:'add'};
+function renderAssignCard(){
+  adr.charts=adr.charts.filter(viewById);
+  const who=state.people.filter(p=>adr.people.includes(p.id)||adr.positions.includes(p.pos));
+  const chartItems=state.views.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(v=>({v:v.id,l:v.name,g:formById(v.config.formId)?.title||'Form deleted',note:VIZ_LABEL[v.viz]||v.viz}));
+  $('#assignCard').innerHTML=`<div class="assign-head"><div><h3>Assign charts</h3>
+      <p class="opt-hint">Pick one or more saved charts, then who should see them in <b>My charts</b>. Positions include people added later.</p></div></div>
+    <div class="sched-grid3">
+      <div class="fld"><span>Charts</span>${msHtml('as_charts',{title:'Charts',items:chartItems,sel:adr.charts,placeholder:state.views.length?'Choose charts…':'Save a chart first',onChange:s=>{adr.charts=s;renderAssignCard();}})}</div>
+      <div class="fld"><span>Positions</span>${msHtml('as_pos',{title:'Positions',items:allPositions().map(x=>({v:x,l:x,note:state.people.filter(p=>p.pos===x).length+' people'})),sel:adr.positions,placeholder:'Choose positions…',onChange:s=>{adr.positions=s;renderAssignCard();}})}</div>
+      <div class="fld"><span>Employees</span>${msHtml('as_ppl',{title:'Employees',items:peopleItems(),sel:adr.people,placeholder:'Choose employees…',onChange:s=>{adr.people=s;renderAssignCard();}})}</div>
+    </div>
+    <div class="mode-row" role="radiogroup" aria-label="How to assign">
+      <label class="chip"><input type="radio" name="asMode" value="add" ${adr.mode==='add'?'checked':''}> Add to current assignments</label>
+      <label class="chip"><input type="radio" name="asMode" value="replace" ${adr.mode==='replace'?'checked':''}> Replace current assignments</label>
+    </div>
+    <p class="err" id="asErr" hidden></p>
+    <div class="editor-foot"><button type="button" class="btn" id="asGo">${adr.mode==='replace'?'Replace assignments':'Assign'}</button>
+      <span class="opt-hint">${adr.charts.length?`${adr.charts.length} chart${adr.charts.length===1?'':'s'}`:'No charts picked'} → ${who.length?`${who.length} ${who.length===1?'person':'people'}${who.length<=5?`: ${who.map(p=>esc(p.name)).join(', ')}`:''}`:adr.mode==='replace'?'<b class="err">nobody. This removes everyone from the selected charts.</b>':'nobody yet'}</span></div>`;
+}
+$('#assignCard').addEventListener('change',e=>{ if(e.target.name==='asMode'){ adr.mode=e.target.value; renderAssignCard(); } });
+$('#assignCard').addEventListener('click',e=>{
+  if(e.target.id!=='asGo')return;
+  const er=$('#asErr'), errs=[];
+  if(!adr.charts.length)errs.push('pick at least one chart');
+  if(adr.mode==='add'&&!adr.positions.length&&!adr.people.length)errs.push('pick at least one position or employee');
+  if(errs.length){ er.hidden=false; er.textContent='To assign, '+errs.join(' and ')+'.'; return; }
+  adr.charts.forEach(id=>{ const v=viewById(id);
+    if(adr.mode==='replace'){ v.positions=[...adr.positions]; v.people=[...adr.people]; }
+    else { v.positions=[...new Set([...v.positions,...adr.positions])]; v.people=[...new Set([...v.people,...adr.people])]; } });
+  const n=adr.charts.length; toast(`${adr.mode==='replace'?'Replaced assignments on':'Assigned'} ${n} chart${n===1?'':'s'}`);
+  adr.positions=[]; adr.people=[]; adr.mode='add'; save(); renderAssign(); renderNav();
+});
+function renderAssign(){ renderSaveCard(); renderAssignCard(); renderSavedViews(); }
 function renderSavedViews(){
   const V=state.views.slice().sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  const tagsX=v=>[...v.positions.map(x=>`<span class="tag pos">${esc(x)}<button type="button" class="tag-x" data-unpos="${v.id}|${esc(x)}" aria-label="Unassign ${esc(x)}">×</button></span>`),
+    ...v.people.map(id=>`<span class="tag">${esc(personName(id))}<button type="button" class="tag-x" data-unppl="${v.id}|${id}" aria-label="Unassign ${esc(personName(id))}">×</button></span>`)].join('')||'<span class="dim">Nobody yet</span>';
   $('#savedViews').innerHTML=`<h3 class="saved-h">Saved charts <span class="opt-hint">${V.length}</span></h3>`+(V.length?`<div class="tbl-wrap"><table class="sched"><thead><tr><th>Chart name</th><th>Form</th><th>Shows</th><th>Type</th><th>Assigned to</th><th></th></tr></thead><tbody>${
     V.map(v=>{ const F=formById(v.config.formId); const desc=F?withPivot(v.config,()=>{ const P=computePivot(); return `${measureName(P)} by ${P.rfs.map(f=>f.label).join(' › ')}${P.cfs.length?` × ${P.cfs.map(f=>f.label).join(' › ')}`:''}`; }):'';
       return `<tr class="${v.id===state.editingView?'editing':''}"><td><b>${esc(v.name)}</b></td><td>${F?esc(F.title):'<span class="err">Form deleted</span>'}</td><td class="desc">${esc(desc)}</td><td>${esc(VIZ_LABEL[v.viz]||v.viz)}</td>
-        <td>${assignedTags(v)}</td><td><button class="linkbtn" data-vopen="${v.id}" ${F?'':'disabled'}>Open</button><button class="linkbtn del" data-vdel="${v.id}">${vdelArm===v.id?'Confirm delete':'Delete'}</button></td></tr>`; }).join('')}</tbody></table></div>`
-    :'<p class="empty">No saved charts yet. Set up a pivot and chart, name it above, and assign it.</p>');
+        <td>${tagsX(v)}</td><td><button class="linkbtn" data-vpick="${v.id}">Assign…</button><button class="linkbtn" data-vopen="${v.id}" ${F?'':'disabled'}>Open</button><button class="linkbtn del" data-vdel="${v.id}">${vdelArm===v.id?'Confirm delete':'Delete'}</button></td></tr>`; }).join('')}</tbody></table></div>`
+    :'<p class="empty">No saved charts yet. Set up a pivot and chart, then save it above.</p>');
 }
 let vdelArm=null, vdelT;
-$('#assignCard').addEventListener('input',e=>{ if(e.target.id==='vName')vdraft.name=e.target.value; });
-$('#assignCard').addEventListener('change',e=>{ const t=e.target;
-  if(t.name==='vpos'||t.name==='vppl'){ const k=t.name==='vpos'?'positions':'people'; vdraft[k]=[...$('#assignCard').querySelectorAll(`input[name="${t.name}"]:checked`)].map(i=>i.value); renderAssign(); } });
-$('#assignCard').addEventListener('click',e=>{
-  const id=e.target.id; if(!['vStop','vUpdate','vSaveNew'].includes(id))return;
-  if(id==='vStop'){ state.editingView=null; vdraft=null; save(); renderAssign(); return; }
-  const er=$('#vErr'), errs=[];
-  if(!vdraft.name.trim())errs.push('enter a chart name'); if(!vdraft.people.length&&!vdraft.positions.length)errs.push('pick at least one position or employee');
-  if(!computePivot().rowKeys.length)errs.push('set up a pivot that has data');
-  if(errs.length){ er.hidden=false; er.textContent='To save, '+errs.join(', ')+'.'; return; }
-  const body={name:vdraft.name.trim(),config:pivotCfg(),viz:state.viz,people:[...vdraft.people],positions:[...vdraft.positions],updatedAt:nowIso()};
-  if(id==='vUpdate'){ Object.assign(viewById(state.editingView),body); toast(`“${body.name}” updated`); }
-  else { const v={id:uid('v_'),...body}; state.views.push(v); state.editingView=v.id; toast(`“${body.name}” saved and assigned`); }
-  vdraft=null; save(); renderAssign();
-});
 $('#savedViews').addEventListener('click',e=>{
-  const o=e.target.closest('[data-vopen]'); if(o){ const v=viewById(o.dataset.vopen); state.pivot=JSON.parse(JSON.stringify(v.config)); state.viz=v.viz; state.editingView=v.id; vdraft=null; save(); go('viz'); window.scrollTo({top:0,behavior:'smooth'}); toast(`Opened “${v.name}”. Change the pivot or chart, then Update chart.`); return; }
+  const pk=e.target.closest('[data-vpick]'); if(pk){ const v=viewById(pk.dataset.vpick); adr.charts=[v.id]; adr.positions=[...v.positions]; adr.people=[...v.people]; adr.mode='replace'; renderAssignCard();
+    $('#assignCard').scrollIntoView({behavior:'smooth',block:'center'}); toast(`“${v.name}” selected with its current assignments`); return; }
+  const up=e.target.closest('[data-unpos],[data-unppl]'); if(up){ const pos=!!up.dataset.unpos, [vid,val]=(up.dataset.unpos||up.dataset.unppl).split('|'), v=viewById(vid);
+    if(pos)v.positions=v.positions.filter(x=>x!==val); else v.people=v.people.filter(x=>x!==val); save(); renderSavedViews(); renderNav(); toast(`Unassigned ${pos?val:personName(val)} from “${v.name}”`); return; }
+  const o=e.target.closest('[data-vopen]'); if(o){ const v=viewById(o.dataset.vopen); state.pivot=JSON.parse(JSON.stringify(v.config)); state.viz=v.viz; state.editingView=v.id; vname=null; save(); renderAnalysis(); window.scrollTo({top:0,behavior:'smooth'}); toast(`Opened “${v.name}”. Change it, then Update chart.`); return; }
   const d=e.target.closest('[data-vdel]'); if(!d)return; const id=d.dataset.vdel;
   if(vdelArm!==id){ vdelArm=id; clearTimeout(vdelT); vdelT=setTimeout(()=>{vdelArm=null;renderSavedViews();},3500); renderSavedViews(); return; }
-  vdelArm=null; state.views=state.views.filter(v=>v.id!==id); if(state.editingView===id){state.editingView=null;vdraft=null;} save(); renderAssign(); toast('Chart deleted');
+  vdelArm=null; state.views=state.views.filter(v=>v.id!==id); if(state.editingView===id){state.editingView=null;vname=null;} save(); renderAssign(); renderNav(); toast('Chart deleted');
 });
 
-/* My charts: what a given person sees */
+/* My charts: what the signed-in person sees */
 let mineCharts=[];
 function renderMine(){
   mineCharts.forEach(c=>c.destroy()); mineCharts=[];
-  if(!personById(state.viewer))state.viewer=state.people[0]?.id;
-  $('#mineWho').innerHTML=state.people.map(p=>`<option value="${p.id}" ${p.id===state.viewer?'selected':''}>${esc(p.name)} · ${esc(p.pos||p.dept)}</option>`).join('');
-  const me=personById(state.viewer), V=state.views.filter(v=>formById(v.config.formId)&&(v.people.includes(me?.id)||v.positions.includes(me?.pos)));
-  $('#mineSub').textContent=me?`${me.name} · ${me.pos||'No position'} · ${me.dept}. ${V.length} chart${V.length===1?'':'s'} assigned.`:'';
-  if(!V.length){ $('#mineGrid').innerHTML='<p class="card empty">No charts are assigned to this person yet. Assign one from the Visualize tab.</p>'; return; }
+  const me=personById(state.who), V=state.views.filter(v=>formById(v.config.formId)&&(v.people.includes(me?.id)||v.positions.includes(me?.pos)));
+  $('#mineSub').textContent=me?`${me.name} · ${me.pos||'No position'} · ${me.dept}. ${V.length} chart${V.length===1?'':'s'} assigned. Switch person at the bottom of the sidebar.`:'';
+  if(!V.length){ $('#mineGrid').innerHTML='<p class="card empty">No charts are assigned to this person yet. Assign one from Pivot & Charts.</p>'; return; }
   $('#mineGrid').innerHTML=V.map(v=>{ const why=[v.people.includes(me.id)?'Assigned to you':'',v.positions.includes(me.pos)?`Your position: ${me.pos}`:''].filter(Boolean);
     return `<article class="mine-card ${v.viz==='table'?'wide':''}"><div class="mine-head"><div><h3>${esc(v.name)}</h3><span class="opt-hint">${esc(formById(v.config.formId).title)} · ${esc(VIZ_LABEL[v.viz])}</span></div>
       <span class="badges">${why.map(w=>`<span class="badge acc">${esc(w)}</span>`).join('')}</span></div><div class="mine-body" id="mb-${v.id}"></div></article>`; }).join('');
   V.forEach(v=>withPivot(v.config,()=>{ const P=computePivot(), box=document.getElementById('mb-'+v.id);
     if(!P.rowKeys.length){ box.innerHTML='<p class="empty">No data yet.</p>'; return; }
-    if(v.viz==='table'||!window.Chart){ box.innerHTML=`<div class="tbl-wrap">${pivotHtml(P,true).replace(/<button type="button" class="fbtn[\s\S]*?<\/button>/g,'')}</div>`; return; }
+    if(v.viz==='table'||!window.Chart){ box.innerHTML=`<div class="tbl-wrap fit">${pivotHtml(P,true).replace(/<button type="button" class="fbtn[\s\S]*?<\/button>/g,'')}</div>`; return; }
     box.innerHTML=`<div class="chart-wrap small"><canvas aria-label="${esc(v.name)}" role="img"></canvas></div>`;
     mineCharts.push(drawChart(box.querySelector('canvas'),P,v.viz));
   }));
 }
-$('#mineWho').addEventListener('change',e=>{ state.viewer=e.target.value; save(); renderMine(); });
-
 /* ---------- reset ---------- */
 let armed=false, armT;
 $('#resetBtn').addEventListener('click',e=>{
   const b=e.currentTarget;
-  if(!armed){ armed=true; b.textContent='Click again to reset'; b.classList.add('warn'); clearTimeout(armT);
-    armT=setTimeout(()=>{armed=false;b.textContent='Reset to sample data';b.classList.remove('warn');},3000); return; }
-  armed=false; b.textContent='Reset to sample data'; b.classList.remove('warn');
+  if(!armed){ armed=true; b.innerHTML='<span class="long">Click again to reset</span><span class="short">Sure?</span>'; b.classList.add('warn'); clearTimeout(armT);
+    armT=setTimeout(()=>{armed=false;b.innerHTML='<span class="long">Reset to sample data</span><span class="short">Reset</span>';b.classList.remove('warn');},3000); return; }
+  armed=false; b.innerHTML='<span class="long">Reset to sample data</span><span class="short">Reset</span>'; b.classList.remove('warn');
   const tab=state.tab; state=sampleState(); state.tab=tab; save(); go(tab); toast('Sample forms, schedules and data restored');
 });
 
 
-go(state.tab||'build');
+go(state.tab||'schedules');
 })();
 </script>
 </body>
