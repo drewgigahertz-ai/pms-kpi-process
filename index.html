@@ -273,6 +273,21 @@ table.rate td{white-space:nowrap}
 .pivot td.total,.pivot tr.total td:last-child{border-left:1px solid var(--line)}
 .pivot th.rowh{padding-right:28px}
 .pivot .gs{border-left:1px solid var(--line)}
+/* assign charts + my charts */
+.assign{display:flex;flex-direction:column;gap:14px}
+.assign-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.assign-head p{margin-top:4px}
+.saved{display:flex;flex-direction:column;gap:10px}
+.saved-h{display:flex;gap:8px;align-items:baseline}
+table.sched tr.editing td{background:var(--accent-soft)}
+.tag.pos{border-color:var(--accent);color:var(--accent)}
+.mine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:14px}
+.mine-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.mine-card.wide{grid-column:1/-1}
+.mine-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.mine-head h3{margin-bottom:2px}
+.mine-body{min-width:0}
+.chart-wrap.small{height:300px}
 /* choice editor */
 .opts{display:flex;flex-direction:column;gap:6px;min-width:0}
 .opts-title{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
@@ -348,7 +363,7 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
     <div>
       <p class="eyebrow">Prototype for the dev team</p>
       <h1>PMS KPI Process</h1>
-      <p class="lede">Managers build forms and schedule them as tasks. Employees submit. The schedule sets the deadline. The head pivots each form into a table or chart. Each submission records its timestamp and timeliness, and completeness is measured against the required number of reports. Data stays in this browser.</p>
+      <p class="lede">Managers build forms, set submission deadlines and accuracy raters. Employees submit, raters score accuracy. The head pivots each form into a table or chart and assigns it to employees or positions. Data stays in this browser.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button id="resetBtn" class="btn ghost">Reset to sample data</button>
@@ -403,6 +418,8 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
         <div class="people-add">
           <label class="fld" for="pName">Name<input type="text" id="pName" placeholder="Full name"></label>
           <label class="fld" for="pDept">Department<input type="text" id="pDept" list="deptList" placeholder="e.g. Finance"></label>
+          <label class="fld" for="pPos">Position<input type="text" id="pPos" list="posList" placeholder="e.g. Sales Executive"></label>
+          <datalist id="posList"></datalist>
           <datalist id="deptList"></datalist>
           <button type="button" class="btn small" id="pAdd">Add person</button>
         </div>
@@ -490,11 +507,21 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
         <p class="empty" id="chartMsg" hidden></p>
         <div id="vizTable" hidden></div>
       </div>
+      <div class="card assign" id="assignCard"></div>
+      <div class="saved" id="savedViews"></div>
       <details class="dev">
         <summary>For developers: the data at each step</summary>
         <p>The app keeps three objects. The <b>form schema</b> defines questions. Each <b>response</b> stores answers keyed by question id. The <b>pivot config</b> plus <b>chart type</b> is all the visualization needs, so it can be saved as a "view" alongside the form.</p>
         <pre id="devJson"></pre>
       </details>
+    </section>
+    <!-- MY CHARTS -->
+    <section class="panel" id="tab-mine" role="tabpanel" hidden>
+      <div class="panel-head">
+        <div><h2>My charts</h2><p id="mineSub"></p></div>
+        <label class="fld inline" for="mineWho">Viewing as<select id="mineWho"></select></label>
+      </div>
+      <div class="mine-grid" id="mineGrid"></div>
     </section>
   </main>
   <div class="toast" id="toast" hidden></div>
@@ -503,7 +530,7 @@ td .sub{display:block;font-size:.7rem;color:var(--muted);font-weight:400}
 
 <script>
 (function(){
-const LS_KEY='pms-kpi-process-v10';
+const LS_KEY='pms-kpi-process-v11';
 /* ---------- question types ---------- */
 const TYPE_GROUPS=[
  ['Text',[['text','Short answer'],['paragraph','Paragraph'],['email','Email'],['phone','Phone number'],['url','Link']]],
@@ -518,7 +545,7 @@ const CHOICE_TYPES=['radio','checkbox','select'];
 const GRID_TYPES=['mcgrid','cbgrid'];
 const NUMERIC_TYPES=['number','scale','rating'];
 const ACCEPT={any:['Any file',''],pdf:['PDF','.pdf'],image:['Image','image/*'],doc:['Document (PDF, Word)','.pdf,.doc,.docx'],sheet:['Spreadsheet (Excel, CSV)','.xls,.xlsx,.csv'],slides:['Presentation','.ppt,.pptx,.pdf']};
-const STEPS=[['build','Build form','Questions'],['schedule','Schedule Set Up','Deadlines'],['accuracy','Accuracy Set Up','Ratee & rater'],['collect','Collect','Fill & submit'],['responses','Responses','Stored rows'],['pivot','Pivot','Group & total'],['viz','Visualize','Chart or table']];
+const STEPS=[['build','Build form','Questions'],['schedule','Schedule Set Up','Deadlines'],['accuracy','Accuracy Set Up','Ratee & rater'],['collect','Collect','Fill & submit'],['responses','Responses','Stored rows'],['pivot','Pivot','Group & total'],['viz','Visualize','Chart or table'],['mine','My charts','Assigned to me']];
 const VIZ=[
  ['bar','Bar','<rect x="3" y="12" width="6" height="12"/><rect x="14" y="5" width="6" height="19"/><rect x="25" y="9" width="6" height="15"/>'],
  ['stacked','Stacked bar','<rect x="4" y="14" width="8" height="10"/><rect x="4" y="6" width="8" height="7" opacity=".5"/><rect x="20" y="10" width="8" height="14"/><rect x="20" y="3" width="8" height="6" opacity=".5"/>'],
@@ -595,10 +622,10 @@ const schedBadge=st=>`<span class="badge ${st==='done'?'ok':st==='overdue'?'late
 
 /* ---------- sample data ---------- */
 function sampleState(){
-  const P=(id,name,dept,miss,late)=>({id,name,dept,miss,late});
-  const roster=[P('p_ana','Ana Santos','Finance',.02,.05),P('p_ben','Ben Reyes','Finance',.1,.15),P('p_carlo','Carlo Cruz','Human Resources',.05,.25),P('p_dana','Dana Bautista','Human Resources',.25,.1),
-    P('p_elle','Elle Garcia','Operations',.08,.35),P('p_franco','Franco Mendoza','Operations',.3,.4),P('p_gia','Gia Torres','Sales',.12,.2),P('p_hector','Hector Flores','Sales',.04,.5),
-    P('p_rosa','Rosa Villanueva','Management',0,0),P('p_marco','Marco Dizon','Management',0,0),P('p_lea','Lea Ramos','Quality Assurance',0,0)];
+  const P=(id,name,dept,miss,late,pos)=>({id,name,dept,miss,late,pos});
+  const roster=[P('p_ana','Ana Santos','Finance',.02,.05,'Accountant'),P('p_ben','Ben Reyes','Finance',.1,.15,'Accountant'),P('p_carlo','Carlo Cruz','Human Resources',.05,.25,'HR Officer'),P('p_dana','Dana Bautista','Human Resources',.25,.1,'HR Officer'),
+    P('p_elle','Elle Garcia','Operations',.08,.35,'Operations Supervisor'),P('p_franco','Franco Mendoza','Operations',.3,.4,'Operations Staff'),P('p_gia','Gia Torres','Sales',.12,.2,'Sales Executive'),P('p_hector','Hector Flores','Sales',.04,.5,'Sales Executive'),
+    P('p_rosa','Rosa Villanueva','Management',0,0,'Department Head'),P('p_marco','Marco Dizon','Management',0,0,'Department Head'),P('p_lea','Lea Ramos','Quality Assurance',0,0,'QA Analyst')];
   const staff=roster.slice(0,8), field=staff.filter(p=>p.dept==='Sales'||p.dept==='Operations');
   const tasks=['Client calls','Reports prepared','Meetings attended','Training','Process improvement'];
   const forms=[
@@ -664,7 +691,11 @@ function sampleState(){
     const sc=Math.max(50,Math.min(100,Math.round(skill[r.by]+(rnd()-.5)*18+(a.id==='a_target'?-3:0))));
     (r.ratings??={})[a.id]={score:sc,comment:sc<85?pick(accNotes):'',by:a.rater,at:shift(r.submittedAt,6+rnd()*30)};
   }));
-  return {accuracy,people:roster.map(({id,name,dept})=>({id,name,dept})),forms,schedules,responses,activeFormId:'form_kpi',who:'p_ben',open:null,respFilter:'all',editing:null,
+  const views=[
+    {id:'v_complete',name:'Completeness by department and task',config:{formId:'form_kpi',rows:['t_dept','t_assignee'],cols:['t_task'],value:'m_complete',agg:'avg',gran:'week',filters:{}},viz:'table',people:[],positions:['Department Head'],updatedAt:shift(now,-20)},
+    {id:'v_accuracy',name:'Accuracy by KPI',config:{formId:'form_kpi',rows:['t_assignee'],cols:['a_kpi'],value:'m_accuracy',agg:'avg',gran:'week',filters:{}},viz:'bar',people:['p_lea'],positions:['Department Head'],updatedAt:shift(now,-10)},
+    {id:'v_visits',name:'Client visit outcomes',config:{formId:'form_visit',rows:['q:main visit outcome'],cols:[],value:'',agg:'avg',gran:'week',filters:{}},viz:'doughnut',people:['p_marco'],positions:['Sales Executive','Operations Supervisor'],updatedAt:shift(now,-5)}];
+  return {views,viewer:'p_rosa',accuracy,people:roster.map(({id,name,dept,pos})=>({id,name,dept,pos})),forms,schedules,responses,activeFormId:'form_kpi',who:'p_ben',open:null,respFilter:'all',editing:null,
     pivot:{formId:'form_kpi',rows:['t_dept','t_assignee'],cols:['t_task'],value:'m_complete',agg:'avg',gran:'week',filters:{}},viz:'table',tab:'schedule'};
 }
 
@@ -673,6 +704,7 @@ try{ state=JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ state=null; }
 if(!state||!Array.isArray(state.schedules)||!state.forms?.length||!('formId' in (state.pivot||{}))) state=sampleState();
 state.forms.forEach(F=>F.fields=F.fields.filter(f=>f.type!=='section'));
 state.accuracy??=[];
+state.views??=[];
 function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){} }
 
 let toastT;
@@ -733,7 +765,7 @@ const isDateLike=f=>f&&['date','datetime','timestamp'].includes(f.type);
 
 /* ---------- stepper ---------- */
 function renderSteps(){
-  const counts={build:state.forms.length+' forms',schedule:state.schedules.length+' tasks',accuracy:state.accuracy.length+' set ups',responses:state.responses.length+' rows'};
+  const counts={mine:state.views.length+' saved',build:state.forms.length+' forms',schedule:state.schedules.length+' tasks',accuracy:state.accuracy.length+' set ups',responses:state.responses.length+' rows'};
   $('#steps').innerHTML=STEPS.map(([k,t,s],i)=>(i?'<span class="arrow" aria-hidden="true">→</span>':'')+
     `<button class="step" role="tab" id="step-${k}" aria-controls="tab-${k}" aria-selected="${state.tab===k}" data-tab="${k}">
       <span class="n">${i+1}</span><span><span class="t">${t}</span><br><span class="s">${esc(counts[k]||s)}</span></span></button>`).join('');
@@ -748,7 +780,8 @@ function go(tab){
   if(tab==='collect')renderCollect();
   if(tab==='responses')renderResponses();
   if(tab==='pivot'){renderPicker();renderPivotControls();renderPivot();}
-  if(tab==='viz'){fixPivot();renderViz();}
+  if(tab==='viz'){fixPivot();renderViz();renderAssign();}
+  if(tab==='mine')renderMine();
 }
 document.addEventListener('click',e=>{
   const s=e.target.closest('[data-tab]'); if(s){go(s.dataset.tab);return;}
@@ -1001,15 +1034,16 @@ SE.addEventListener('click',e=>{
 });
 function renderPeople(){
   $('#peopleCount').textContent=state.people.length+' people';
-  const used=id=>state.schedules.some(s=>s.assignees.includes(id)||s.reviewer===id);
-  $('#peopleList').innerHTML=state.people.map(p=>`<span class="tag">${esc(p.name)} · ${esc(p.dept)}${used(p.id)?'':` <button type="button" class="opt-x" data-pdel="${p.id}" aria-label="Remove ${esc(p.name)}" style="width:20px;height:20px;font-size:.9rem">×</button>`}</span>`).join('');
+  const used=id=>state.schedules.some(s=>s.assignees.includes(id)||s.reviewer===id)||state.accuracy.some(a=>a.rater===id||a.ratees.includes(id))||state.views.some(v=>v.people.includes(id));
+  $('#peopleList').innerHTML=state.people.map(p=>`<span class="tag">${esc(p.name)} · ${esc(p.pos?p.pos+', ':'')}${esc(p.dept)}${used(p.id)?'':` <button type="button" class="opt-x" data-pdel="${p.id}" aria-label="Remove ${esc(p.name)}" style="width:20px;height:20px;font-size:.9rem">×</button>`}</span>`).join('');
   $('#deptList').innerHTML=[...new Set(state.people.map(p=>p.dept))].map(d=>`<option value="${esc(d)}">`).join('');
+  $('#posList').innerHTML=allPositions().map(d=>`<option value="${esc(d)}">`).join('');
 }
 $('#peopleList').addEventListener('click',e=>{ const b=e.target.closest('[data-pdel]'); if(!b)return; state.people=state.people.filter(p=>p.id!==b.dataset.pdel); save(); renderScheduleTab(); });
 $('#pAdd').addEventListener('click',()=>{
-  const name=$('#pName').value.trim(), dept=$('#pDept').value.trim();
-  if(!name||!dept){ toast('Enter a name and a department.'); return; }
-  state.people.push({id:uid('p_'),name,dept}); $('#pName').value=''; save(); renderScheduleTab(); toast(`${name} added`);
+  const name=$('#pName').value.trim(), dept=$('#pDept').value.trim(), pos=$('#pPos').value.trim();
+  if(!name||!dept||!pos){ toast('Enter a name, department and position.'); return; }
+  state.people.push({id:uid('p_'),name,dept,pos}); $('#pName').value=''; save(); renderScheduleTab(); toast(`${name} added`);
 });
 
 /* ---------- accuracy ----------
@@ -1635,6 +1669,7 @@ function renderViz(){
     exampleResponse:state.responses.filter(r=>r.formId===F0.id).slice(-1)[0]||null,
     view:{formId:F0.id,rows:state.pivot.rows,columns:state.pivot.cols,filters:state.pivot.filters,value:state.pivot.value||'count',aggregate:P.special?null:P.agg,dateGrouping:state.pivot.gran,chartType:type},
     exampleAccuracySetUp:state.accuracy[0]||null,
+    exampleSavedChart:state.views[0]||null,
     completenessRule:'for one form: required = every (schedule containing the form, assignee); submitted = those with at least one response'
   },null,2);
   if(chart){chart.destroy();chart=null;}
@@ -1643,6 +1678,9 @@ function renderViz(){
   if(isTable){ $('#vizTable').innerHTML=`<div class="tbl-wrap">${pivotHtml(P,true)}</div>`; return; }
   if(noData){ $('#chartMsg').hidden=false; $('#chartMsg').textContent='Nothing to chart yet. Add responses and set up the pivot.'; return; }
   if(!window.Chart){ $('#chartBox').hidden=true; $('#chartMsg').hidden=false; $('#chartMsg').textContent='The charting library did not load. Check your connection and reload the page.'; return; }
+  chart=drawChart($('#chartCanvas'),P,type);
+}
+function drawChart(canvas,P,type){
   const cs=getComputedStyle(document.documentElement), tok=n=>cs.getPropertyValue(n).trim();
   const colors=[1,2,3,4,5,6].map(i=>tok('--c'+i)), fg=tok('--fg'), muted=tok('--muted'), line=tok('--line'), surface=tok('--surface');
   const semantic={'On time':tok('--ok'),'Late':tok('--late'),'File uploaded':tok('--ok'),'No file':tok('--late')};
@@ -1660,15 +1698,101 @@ function renderViz(){
   const vAxis=grid=>({stacked:type==='stacked',beginAtZero:true,...pctAxis,grid:{color:grid},border:{display:false}});
   const cAxis=grid=>({stacked:type==='stacked',ticks:{color:muted,font},grid:{color:grid},border:{color:line}});
   const axes=(type==='pie'||type==='doughnut')?{}:type==='hbar'?{x:vAxis(line),y:cAxis('transparent')}:{x:cAxis('transparent'),y:vAxis(line)};
-  chart=new Chart($('#chartCanvas'),{type:ctype,data,options:{
+  return new Chart(canvas,{type:ctype,data,options:{
     responsive:true,maintainAspectRatio:false,indexAxis:type==='hbar'?'y':'x',animation:matchMedia('(prefers-reduced-motion: reduce)').matches?false:{duration:350},
     plugins:{legend:{display:P.cfs.length>0||type==='pie'||type==='doughnut',position:'bottom',labels:{color:fg,font,boxWidth:12,boxHeight:12,usePointStyle:true}},
       tooltip:{callbacks:{label:c=>{const round=type==='pie'||type==='doughnut';const v=round?c.parsed:(type==='hbar'?c.parsed.x:c.parsed.y);return `${round?c.label:c.dataset.label}: ${fmt(v,P.agg)}`;}}}},
     scales:axes}});
 }
-function rethemeChart(){ if(state.tab==='viz')renderViz(); }
+function rethemeChart(){ if(state.tab==='viz')renderViz(); if(state.tab==='mine')renderMine(); }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',rethemeChart);
 new MutationObserver(rethemeChart).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- saved charts and assignment ----------
+   view: { id, name, config:{formId,rows,cols,value,agg,gran,filters}, viz, people[], positions[], updatedAt }
+   A person sees a view when they are listed in people, or their position is listed in positions. */
+const personPos=id=>personById(id)?.pos||'';
+const allPositions=()=>[...new Set(state.people.map(p=>p.pos).filter(Boolean))].sort();
+const VIZ_LABEL=Object.fromEntries(VIZ.map(v=>[v[0],v[1]]));
+const viewById=id=>state.views.find(v=>v.id===id);
+function withPivot(cfg,fn){ const keep=state.pivot; state.pivot=JSON.parse(JSON.stringify(cfg)); try{ fixPivot(); return fn(); } finally{ state.pivot=keep; } }
+const pivotCfg=()=>{ const p=state.pivot; return JSON.parse(JSON.stringify({formId:p.formId,rows:p.rows,cols:p.cols,value:p.value,agg:p.agg,gran:p.gran,filters:p.filters||{}})); };
+const viewersOf=v=>state.people.filter(p=>v.people.includes(p.id)||v.positions.includes(p.pos));
+const assignedTags=v=>[...v.positions.map(x=>`<span class="tag pos">${esc(x)}</span>`),...v.people.map(id=>`<span class="tag">${esc(personName(id))}</span>`)].join('')||'<span class="dim">Nobody yet</span>';
+
+let vdraft=null;
+function freshDraft(){ const v=state.editingView&&viewById(state.editingView);
+  vdraft=v?{name:v.name,people:[...v.people],positions:[...v.positions]}:{name:'',people:[],positions:[]}; }
+function renderAssign(){
+  if(state.editingView&&!viewById(state.editingView))state.editingView=null;
+  if(!vdraft)freshDraft();
+  const d=vdraft, v=state.editingView&&viewById(state.editingView), depts=[...new Set(state.people.map(p=>p.dept))];
+  const chip=(name,val,on,label)=>`<label class="chip"><input type="checkbox" name="${name}" value="${esc(val)}" ${on?'checked':''}> ${esc(label)}</label>`;
+  const who=state.people.filter(p=>d.people.includes(p.id)||d.positions.includes(p.pos));
+  $('#assignCard').innerHTML=`<div class="assign-head"><div><h3>${v?`Editing “${esc(v.name)}”`:'Assign this chart'}</h3>
+      <p class="opt-hint">Saves the current pivot (form, rows, columns, values, filters) and chart type, and shows it to the people you pick in their <b>My charts</b> tab.</p></div>
+      ${v?'<button type="button" class="linkbtn" id="vStop">Stop editing</button>':''}</div>
+    <label class="fld" for="vName">Chart name<input type="text" id="vName" value="${esc(d.name)}" placeholder="e.g. Weekly completeness by department"></label>
+    <div class="fld"><span>Positions <span class="opt-hint">Everyone in these positions sees it, including people added later.</span></span>
+      <div class="chips">${allPositions().map(x=>chip('vpos',x,d.positions.includes(x),x)).join('')||'<span class="opt-hint">No positions yet. Add them in the People list under Schedule Set Up.</span>'}</div></div>
+    <div class="fld"><span>Employees</span>
+      <div class="chip-groups">${depts.map(dep=>`<div class="chip-group"><div class="chip-group-head">${esc(dep)}</div><div class="chips">${state.people.filter(p=>p.dept===dep).map(p=>chip('vppl',p.id,d.people.includes(p.id),p.name)).join('')}</div></div>`).join('')}</div></div>
+    <p class="err" id="vErr" hidden></p>
+    <div class="editor-foot">${v?'<button type="button" class="btn" id="vUpdate">Update chart</button><button type="button" class="btn ghost" id="vSaveNew">Save as new chart</button>':'<button type="button" class="btn" id="vSaveNew">Save and assign</button>'}
+      <span class="opt-hint">${who.length?`Visible to ${who.length} ${who.length===1?'person':'people'}: ${who.slice(0,5).map(p=>esc(p.name)).join(', ')}${who.length>5?` and ${who.length-5} more`:''}`:'Pick at least one position or employee.'}</span></div>`;
+  renderSavedViews();
+}
+function renderSavedViews(){
+  const V=state.views.slice().sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  $('#savedViews').innerHTML=`<h3 class="saved-h">Saved charts <span class="opt-hint">${V.length}</span></h3>`+(V.length?`<div class="tbl-wrap"><table class="sched"><thead><tr><th>Chart name</th><th>Form</th><th>Shows</th><th>Type</th><th>Assigned to</th><th></th></tr></thead><tbody>${
+    V.map(v=>{ const F=formById(v.config.formId); const desc=F?withPivot(v.config,()=>{ const P=computePivot(); return `${measureName(P)} by ${P.rfs.map(f=>f.label).join(' › ')}${P.cfs.length?` × ${P.cfs.map(f=>f.label).join(' › ')}`:''}`; }):'';
+      return `<tr class="${v.id===state.editingView?'editing':''}"><td><b>${esc(v.name)}</b></td><td>${F?esc(F.title):'<span class="err">Form deleted</span>'}</td><td class="desc">${esc(desc)}</td><td>${esc(VIZ_LABEL[v.viz]||v.viz)}</td>
+        <td>${assignedTags(v)}</td><td><button class="linkbtn" data-vopen="${v.id}" ${F?'':'disabled'}>Open</button><button class="linkbtn del" data-vdel="${v.id}">${vdelArm===v.id?'Confirm delete':'Delete'}</button></td></tr>`; }).join('')}</tbody></table></div>`
+    :'<p class="empty">No saved charts yet. Set up a pivot and chart, name it above, and assign it.</p>');
+}
+let vdelArm=null, vdelT;
+$('#assignCard').addEventListener('input',e=>{ if(e.target.id==='vName')vdraft.name=e.target.value; });
+$('#assignCard').addEventListener('change',e=>{ const t=e.target;
+  if(t.name==='vpos'||t.name==='vppl'){ const k=t.name==='vpos'?'positions':'people'; vdraft[k]=[...$('#assignCard').querySelectorAll(`input[name="${t.name}"]:checked`)].map(i=>i.value); renderAssign(); } });
+$('#assignCard').addEventListener('click',e=>{
+  const id=e.target.id; if(!['vStop','vUpdate','vSaveNew'].includes(id))return;
+  if(id==='vStop'){ state.editingView=null; vdraft=null; save(); renderAssign(); return; }
+  const er=$('#vErr'), errs=[];
+  if(!vdraft.name.trim())errs.push('enter a chart name'); if(!vdraft.people.length&&!vdraft.positions.length)errs.push('pick at least one position or employee');
+  if(!computePivot().rowKeys.length)errs.push('set up a pivot that has data');
+  if(errs.length){ er.hidden=false; er.textContent='To save, '+errs.join(', ')+'.'; return; }
+  const body={name:vdraft.name.trim(),config:pivotCfg(),viz:state.viz,people:[...vdraft.people],positions:[...vdraft.positions],updatedAt:nowIso()};
+  if(id==='vUpdate'){ Object.assign(viewById(state.editingView),body); toast(`“${body.name}” updated`); }
+  else { const v={id:uid('v_'),...body}; state.views.push(v); state.editingView=v.id; toast(`“${body.name}” saved and assigned`); }
+  vdraft=null; save(); renderAssign();
+});
+$('#savedViews').addEventListener('click',e=>{
+  const o=e.target.closest('[data-vopen]'); if(o){ const v=viewById(o.dataset.vopen); state.pivot=JSON.parse(JSON.stringify(v.config)); state.viz=v.viz; state.editingView=v.id; vdraft=null; save(); go('viz'); window.scrollTo({top:0,behavior:'smooth'}); toast(`Opened “${v.name}”. Change the pivot or chart, then Update chart.`); return; }
+  const d=e.target.closest('[data-vdel]'); if(!d)return; const id=d.dataset.vdel;
+  if(vdelArm!==id){ vdelArm=id; clearTimeout(vdelT); vdelT=setTimeout(()=>{vdelArm=null;renderSavedViews();},3500); renderSavedViews(); return; }
+  vdelArm=null; state.views=state.views.filter(v=>v.id!==id); if(state.editingView===id){state.editingView=null;vdraft=null;} save(); renderAssign(); toast('Chart deleted');
+});
+
+/* My charts: what a given person sees */
+let mineCharts=[];
+function renderMine(){
+  mineCharts.forEach(c=>c.destroy()); mineCharts=[];
+  if(!personById(state.viewer))state.viewer=state.people[0]?.id;
+  $('#mineWho').innerHTML=state.people.map(p=>`<option value="${p.id}" ${p.id===state.viewer?'selected':''}>${esc(p.name)} · ${esc(p.pos||p.dept)}</option>`).join('');
+  const me=personById(state.viewer), V=state.views.filter(v=>formById(v.config.formId)&&(v.people.includes(me?.id)||v.positions.includes(me?.pos)));
+  $('#mineSub').textContent=me?`${me.name} · ${me.pos||'No position'} · ${me.dept}. ${V.length} chart${V.length===1?'':'s'} assigned.`:'';
+  if(!V.length){ $('#mineGrid').innerHTML='<p class="card empty">No charts are assigned to this person yet. Assign one from the Visualize tab.</p>'; return; }
+  $('#mineGrid').innerHTML=V.map(v=>{ const why=[v.people.includes(me.id)?'Assigned to you':'',v.positions.includes(me.pos)?`Your position: ${me.pos}`:''].filter(Boolean);
+    return `<article class="mine-card ${v.viz==='table'?'wide':''}"><div class="mine-head"><div><h3>${esc(v.name)}</h3><span class="opt-hint">${esc(formById(v.config.formId).title)} · ${esc(VIZ_LABEL[v.viz])}</span></div>
+      <span class="badges">${why.map(w=>`<span class="badge acc">${esc(w)}</span>`).join('')}</span></div><div class="mine-body" id="mb-${v.id}"></div></article>`; }).join('');
+  V.forEach(v=>withPivot(v.config,()=>{ const P=computePivot(), box=document.getElementById('mb-'+v.id);
+    if(!P.rowKeys.length){ box.innerHTML='<p class="empty">No data yet.</p>'; return; }
+    if(v.viz==='table'||!window.Chart){ box.innerHTML=`<div class="tbl-wrap">${pivotHtml(P,true).replace(/<button type="button" class="fbtn[\s\S]*?<\/button>/g,'')}</div>`; return; }
+    box.innerHTML=`<div class="chart-wrap small"><canvas aria-label="${esc(v.name)}" role="img"></canvas></div>`;
+    mineCharts.push(drawChart(box.querySelector('canvas'),P,v.viz));
+  }));
+}
+$('#mineWho').addEventListener('change',e=>{ state.viewer=e.target.value; save(); renderMine(); });
 
 /* ---------- reset ---------- */
 let armed=false, armT;
