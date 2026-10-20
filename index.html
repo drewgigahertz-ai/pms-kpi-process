@@ -459,6 +459,8 @@ label.mini input,label.mini select{width:auto;padding:6px 8px;font-size:.86rem}
 .ev.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
 .ev.overdue{border-color:var(--late);background:color-mix(in srgb,var(--late) 14%,transparent)}
 .ev.inprog{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.ev.rate{border-left-style:double;border-left-width:4px}
+.lg.rate::before{display:none}
 .ev.start{border-left-style:dashed;border-color:var(--muted);background:transparent;color:var(--muted)}
 .ev.sel{outline:2px solid var(--accent);outline-offset:1px}
 .ev-bar{display:block;height:3px;background:var(--line);border-radius:2px;margin-top:3px;overflow:hidden}
@@ -593,7 +595,7 @@ label.mini input,label.mini select{width:auto;padding:6px 8px;font-size:.86rem}
           <div class="cal-bar"><h3 id="calTitle"></h3>
             <div class="cal-nav"><button type="button" class="btn ghost small" id="calPrev" aria-label="Previous month">‹</button><button type="button" class="btn ghost small" id="calToday">Today</button><button type="button" class="btn ghost small" id="calNext" aria-label="Next month">›</button></div></div>
           <div class="cal-grid" id="calGrid"></div>
-          <div class="cal-legend"><span class="lg open">Not started</span><span class="lg inprog">In progress</span><span class="lg done">Submitted</span><span class="lg overdue">Missed</span><span class="lg start">Start date</span></div>
+          <div class="cal-legend"><span class="lg open">Not started</span><span class="lg inprog">In progress</span><span class="lg done">Submitted</span><span class="lg overdue">Missed</span><span class="lg start">Start date</span><span class="lg rate">★ Rating deadline</span></div>
         </div>
         <div class="cal-side">
           <div class="card occ" id="occPanel"></div>
@@ -674,7 +676,7 @@ label.mini input,label.mini select{width:auto;padding:6px 8px;font-size:.86rem}
 
 <script>
 (function(){
-const LS_KEY='pms-kpi-process-v12';
+const LS_KEY='pms-kpi-process-v13';
 /* ---------- question types ---------- */
 const TYPE_GROUPS=[
  ['Text',[['text','Short answer'],['paragraph','Paragraph'],['email','Email'],['phone','Phone number'],['url','Link']]],
@@ -702,7 +704,7 @@ const SYS=[
  {id:'sys_timeliness',label:'Timeliness',type:'select',options:['On time','Late'],system:true},
  {id:'sys_hours_late',label:'Hours late',type:'number',system:true}
 ];
-const ALL_MEASURES=[{id:'m_complete',label:'Completeness % (submitted vs required)'},{id:'m_ontime',label:'On-time rate %'},{id:'m_accuracy',label:'Accuracy % (average rating)'}];
+const ALL_MEASURES=[{id:'m_complete',label:'Completeness % (submitted vs required)'},{id:'m_ontime',label:'On-time rate %'},{id:'m_accuracy',label:'Accuracy % (average rating)'},{id:'m_rontime',label:'Rating on-time % (raters)'}];
 let MEASURES=ALL_MEASURES;
 
 const $=s=>document.querySelector(s);
@@ -837,14 +839,17 @@ function sampleState(){
   if(benNext)progress[`s_update|${benNext}|p_ben`]={start:addDays(now.slice(0,10),-1),pct:40,notes:'Collected wins from the team. Still waiting on the blockers list from IT.',at:shift(now,-3)};
   responses.sort((a,b)=>a.submittedAt.localeCompare(b.submittedAt));
   const accuracy=[
-    {id:'a_report',ratees:ids(staff),kpi:'Report accuracy',raters:['p_lea'],formIds:['form_kpi']},
-    {id:'a_target',ratees:ids(field),kpi:'Target computation accuracy',raters:['p_marco','p_lea'],formIds:['form_kpi']}];
+    {id:'a_report',ratees:ids(staff),kpi:'Report accuracy',raters:['p_lea'],formIds:['form_kpi'],rateDeadlines:fridays('2026-09-28','2026-11-09','12:00')},
+    {id:'a_target',ratees:ids(field),kpi:'Target computation accuracy',raters:['p_marco','p_lea'],formIds:['form_kpi'],rateDeadlines:fridays('2026-09-29','2026-11-10','17:00')}];
   const skill={p_ana:96,p_ben:88,p_carlo:92,p_dana:78,p_elle:90,p_franco:82,p_gia:85,p_hector:94};
   const accNotes=['Target figure did not match the source report.','Evidence link was missing a page.','Actual % was rounded incorrectly.','Wrong KPI category selected.'];
   responses.filter(r=>r.formId==='form_kpi').forEach(r=>accuracy.filter(a=>a.ratees.includes(r.by)).forEach(a=>{
-    if(r.submittedAt>shift(now,-60)&&rnd()<.75)return;
+    const rdue=a.rateDeadlines.find(d=>d>=r.submittedAt); let at;
+    if(rdue&&rdue<now){ if(rnd()<.12)return; at=rnd()<.2?shift(rdue,2+rnd()*40):localIso(new Date(new Date(r.submittedAt).getTime()+(new Date(rdue)-new Date(r.submittedAt))*(.2+rnd()*.75))); }
+    else { if(rnd()<.7)return; at=shift(r.submittedAt,2+rnd()*20); }
+    if(at>now)at=shift(now,-1);
     const sc=Math.max(50,Math.min(100,Math.round(skill[r.by]+(rnd()-.5)*18+(a.id==='a_target'?-3:0))));
-    (r.ratings??={})[a.id]={score:sc,comment:sc<85?pick(accNotes):'',by:pick(a.raters),at:shift(r.submittedAt,6+rnd()*30)};
+    (r.ratings??={})[a.id]={score:sc,comment:sc<85?pick(accNotes):'',by:pick(a.raters),at};
   }));
   const cfg=(o)=>({formId:'form_kpi',rows:['t_assignee'],cols:[],value:'',agg:'avg',gran:'month',filters:{},range:{field:'t_due',from:'',to:''},...o});
   const views=[
@@ -861,6 +866,7 @@ try{ state=JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ state=null; }
 if(!state||!Array.isArray(state.schedules)||!state.forms?.length||!state.progress) state=sampleState();
 state.forms.forEach(F=>F.fields=F.fields.filter(f=>f.type!=='section'));
 state.accuracy??=[]; state.views??=[]; state.progress??={};
+state.accuracy.forEach(a=>{ a.rateDeadlines??=[]; if(!a.raters&&a.rater)a.raters=[a.rater]; });
 function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){} }
 
 let toastT;
@@ -902,7 +908,9 @@ const accFields=()=>{ const F=pivotForm(); if(!isAccForm(F?.id))return [];
   const A=state.accuracy.filter(a=>a.formIds.includes(F.id));
   return [{id:'a_kpi',label:'KPI',type:'checkbox',options:[...new Set(A.map(a=>a.kpi))],accAttr:true},
     {id:'a_rater',label:'Raters',type:'checkbox',options:[...new Set(A.flatMap(a=>names(a.raters)))],accAttr:true},
-    {id:'a_status',label:'Rating status',type:'select',options:['Rated','Pending','No rater set'],accAttr:true}]; };
+    {id:'a_status',label:'Rating status',type:'select',options:['Rated','Pending','No rater set'],accAttr:true},
+    {id:'a_rdue',label:'Rating deadline',type:'timestamp',accAttr:true},
+    {id:'a_rtime',label:'Rating timeliness',type:'checkbox',options:['On time','Late','Overdue','Not due yet','No rating deadline','Rated (no deadline)'],accAttr:true}]; };
 const pivotFields=()=>[...taskFields(),...accFields(),...unifiedFields(selFormIds()),...SYS];
 const pfById=id=>pivotFields().find(f=>f.id===id);
 const inForm=(f,r)=>!f.sources||!!f.sources[r.formId];
@@ -914,6 +922,8 @@ function valueOf(r,f){
     case 'sys_form': return formOf(r)?.title;
     case 'a_kpi': return r._setup?[r._setup.kpi]:setupsFor(r).map(a=>a.kpi);
     case 'a_rater': { if(r._setup){ const rt=r.ratings?.[r._setup.id]; return rt?[personName(rt.by)]:names(r._setup.raters); } return [...new Set(setupsFor(r).flatMap(a=>names(a.raters)))]; }
+    case 'a_rdue': { if(r._setup)return rateDueFor(r._setup,r)||''; return setupsFor(r).map(a=>rateDueFor(a,r)).filter(Boolean).sort()[0]||''; }
+    case 'a_rtime': return r._setup?[RT_LABEL[rateState(r._setup,r)]]:setupsFor(r).map(a=>RT_LABEL[rateState(a,r)]);
     case 'a_status': { if(r._setup)return r.ratings?.[r._setup.id]?'Rated':'Pending'; const ss=setupsFor(r); return !ss.length?'No rater set':ss.every(a=>r.ratings?.[a.id])?'Rated':'Pending'; }
   }
   if(f.sources){ const fid=f.sources[r.formId]; if(!fid)return undefined; const v=r.values[fid]; return f.row!=null?(v||{})[f.row]:v; }
@@ -969,7 +979,7 @@ function go(tab){
   if(tab==='mine')renderMine();
 }
 document.addEventListener('click',e=>{
-  const s=e.target.closest('[data-tab]'); if(s){ go(s.dataset.tab); window.scrollTo({top:0}); return; }
+  const s=e.target.closest('[data-tab]'); if(s){ state.rateFocus=null; go(s.dataset.tab); window.scrollTo({top:0}); return; }
   const g=e.target.closest('[data-goto]'); if(g){ go(g.dataset.goto); window.scrollTo({top:0,behavior:'smooth'}); }
 });
 $('#navFind').addEventListener('input',renderNav);
@@ -1238,6 +1248,31 @@ function seriesDates(rep){
   }
   return out.map(x=>`${x}T${rep.time||'17:00'}`);
 }
+/* deadline list editor: chips + add one + add a series. p = id prefix */
+function dlEditorHtml(p,list,one,rep){
+  const dls=[...list].sort(), now=nowIso(), prev=seriesDates(rep);
+  return `<div class="dl-chips">${dls.length?dls.map(x=>`<span class="dl ${x<now?'past':''}">${esc(fmtDue(x))}<button type="button" class="opt-x" data-${p}dldel="${x}" aria-label="Remove ${esc(fmtDue(x))}">×</button></span>`).join('')+`<button type="button" class="linkbtn del" id="${p}DlClear">Remove all</button>`:'<span class="opt-hint">No deadlines yet. Add one below, or add a series.</span>'}</div>
+     <div class="dl-tools">
+       <div class="dl-box"><span class="dl-t">Add one deadline</span>
+         <div class="dl-row"><input type="date" id="${p}DlDate" value="${one.date}" aria-label="Deadline date"><input type="time" id="${p}DlTime" value="${one.time}" aria-label="Deadline time"><button type="button" class="btn small" id="${p}DlAdd">Add</button></div></div>
+       <div class="dl-box"><span class="dl-t">Add a series</span>
+         <div class="dl-row"><label class="mini" for="${p}RpEvery">Every<select id="${p}RpEvery">${[['weekday','Weekday'],['day','Day'],['week','Week'],['2week','2 weeks'],['month','Month']].map(([v,l])=>`<option value="${v}" ${rep.every===v?'selected':''}>${l}</option>`).join('')}</select></label>
+           <label class="mini" for="${p}RpFrom">From<input type="date" id="${p}RpFrom" value="${rep.from}"></label>
+           <label class="mini" for="${p}RpTo">To<input type="date" id="${p}RpTo" value="${rep.to}"></label>
+           <label class="mini" for="${p}RpTime">At<input type="time" id="${p}RpTime" value="${rep.time}"></label></div>
+         <div class="dl-row"><button type="button" class="btn small ghost" id="${p}RpAdd" ${prev.length?'':'disabled'}>Add ${prev.length} deadline${prev.length===1?'':'s'}</button>
+           <span class="opt-hint">${prev.length?`${esc(prev.slice(0,3).map(fmtDue).join(', '))}${prev.length>3?' …':''}`:'Pick a start and end date.'}</span></div></div>
+     </div>`;
+}
+function dlClick(e,p,list,one,rep,set){
+  const t=e.target, dd=t.closest(`[data-${p}dldel]`);
+  if(dd){ set(list.filter(x=>x!==dd.getAttribute(`data-${p}dldel`))); return true; }
+  if(t.id===p+'DlClear'){ set([]); return true; }
+  if(t.id===p+'DlAdd'){ if(!one.date||!one.time){ toast('Pick a date and a time.'); return true; } const v=`${one.date}T${one.time}`;
+    if(list.includes(v)){ toast('That deadline is already in the list.'); return true; } one.date=addDays(one.date,7); set([...list,v]); toast(`Added ${fmtDue(v)}`); return true; }
+  if(t.id===p+'RpAdd'){ const add=seriesDates(rep).filter(x=>!list.includes(x)); set([...list,...add]); toast(`Added ${add.length} deadline${add.length===1?'':'s'}`); return true; }
+  return false;
+}
 function editorHtml(){
   const d=draft, one=d._one, rep=d._rep, prev=seriesDates(rep), now=nowIso();
   const dls=[...d.deadlines].sort();
@@ -1344,12 +1379,22 @@ function rateQueue(raterId){
   latestOnly(state.responses).forEach(r=>setupsFor(r).filter(a=>a.raters.includes(raterId)&&r.by!==raterId).forEach(a=>out.push({r,a,rt:r.ratings?.[a.id]})));
   return out.sort((x,y)=>(!!x.rt-!!y.rt)||y.r.submittedAt.localeCompare(x.r.submittedAt));
 }
+/* rating deadlines: a submission is due for rating at the first rating deadline on or after it was submitted */
+const rateDueFor=(a,r)=>(a.rateDeadlines||[]).filter(x=>x>=r.submittedAt).sort()[0]||null;
+function rateState(a,r){ const rt=r.ratings?.[a.id], due=rateDueFor(a,r);
+  if(rt)return !due?'rated':rt.at<=due?'ontime':'late';
+  if(!due)return 'nodue'; return due<nowIso()?'overdue':'notdue'; }
+const RT_LABEL={ontime:'On time',late:'Late',rated:'Rated (no deadline)',overdue:'Overdue',notdue:'Not due yet',nodue:'No rating deadline'};
+const rtBadge=st=>`<span class="badge ${st==='ontime'?'ok':st==='late'||st==='overdue'?'late':st==='notdue'?'sched':'closed'}">${RT_LABEL[st]}</span>`;
 const scoreBadge=sc=>`<span class="badge ${sc>=90?'ok':sc>=75?'part':'late'}">${Math.round(sc)}%</span>`;
 
 let adraft=null, adelArm=null, adelT;
 function startAccEdit(id){
   const a=id&&accById(id);
-  adraft=a?JSON.parse(JSON.stringify(a)):{id:null,ratees:[],kpi:'',raters:[],formIds:[]};
+  adraft=a?JSON.parse(JSON.stringify(a)):{id:null,ratees:[],kpi:'',raters:[],formIds:[],rateDeadlines:[]};
+  adraft.rateDeadlines??=[];
+  const mon=new Date(); mon.setDate(mon.getDate()+((1-mon.getDay()+7)%7||7));
+  adraft._one={date:dayStr(mon),time:'12:00'}; adraft._rep={every:'week',from:dayStr(mon),to:addDays(dayStr(mon),56),time:'12:00'};
   state.accEditing=a?a.id:'new'; renderAccuracyTab();
   requestAnimationFrame(()=>{ $('#accEditor').scrollIntoView({behavior:'smooth',block:'start'}); });
 }
@@ -1363,6 +1408,8 @@ function accEditorHtml(){
      <div class="fld"><span>Raters <span class="opt-hint">Any one of them can rate a submission</span></span>${msHtml('ac_raters',{title:'Raters',items:peopleItems(d.ratees),sel:d.raters,placeholder:'Choose raters…',onChange:v=>{adraft.raters=v;refreshAcc();}})}</div>
      <div class="fld"><span>Name of form</span>${msHtml('ac_forms',{title:'Name of form',items:formItems(),sel:d.formIds,placeholder:'Choose forms…',onChange:v=>{adraft.formIds=v;refreshAcc();}})}</div>
    </div>
+   <div class="fld"><span>Rating deadlines <span class="opt-hint">${(d.rateDeadlines||[]).length} deadline${(d.rateDeadlines||[]).length===1?'':'s'}. Each submission must be rated by the first rating deadline on or after it was submitted.</span></span>
+     ${dlEditorHtml('ad',d.rateDeadlines,d._one,d._rep)}</div>
    <p class="err" id="adErr" hidden></p>
    <div class="editor-foot"><button type="button" class="btn" id="adSave">Save</button><button type="button" class="btn ghost" id="adCancel">Cancel</button>
      <span class="opt-hint">${d.raters.length&&d.ratees.length?`${d.raters.length} rater${d.raters.length>1?'s':''} for ${d.ratees.length} ${d.ratees.length===1?'person':'people'} on ${d.formIds.length} form${d.formIds.length===1?'':'s'}. People in one list are greyed out in the other.`:''}</span></div>`;
@@ -1372,12 +1419,16 @@ function renderAccuracyTab(){
   const ed=$('#accEditor');
   if(state.accEditing&&adraft){ ed.hidden=false; ed.innerHTML=accEditorHtml(); } else { ed.hidden=true; state.accEditing=null; }
   const tags=ids=>ids.length>3?`${ids.slice(0,3).map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('')}<span class="tag">+${ids.length-3} more</span>`:ids.map(id=>`<span class="tag">${esc(personName(id))}</span>`).join('');
-  $('#accTable').innerHTML=state.accuracy.length?`<table class="sched"><thead><tr><th>Ratee</th><th>KPI</th><th>Raters</th><th>Name of form</th><th>Progress</th><th>Average accuracy</th><th></th></tr></thead><tbody>${
-    state.accuracy.map(a=>{ const q=latestOnly(state.responses).flatMap(r=>setupsFor(r).filter(x=>x.id===a.id).map(()=>r.ratings?.[a.id]));
+  $('#accTable').innerHTML=state.accuracy.length?`<table class="sched"><thead><tr><th>Ratee</th><th>KPI</th><th>Raters</th><th>Name of form</th><th>Rating deadlines</th><th>Progress</th><th>Rated on time</th><th>Average accuracy</th><th></th></tr></thead><tbody>${
+    state.accuracy.map(a=>{ const units=latestOnly(state.responses).filter(r=>setupsFor(r).some(x=>x.id===a.id)), q=units.map(r=>r.ratings?.[a.id]);
+      const sts=units.map(r=>rateState(a,r)), due=sts.filter(x=>['ontime','late','overdue'].includes(x)), ot=sts.filter(x=>x==='ontime').length, od=sts.filter(x=>x==='overdue').length;
+      const dls=[...(a.rateDeadlines||[])].sort(), nx=dls.find(x=>x>=nowIso());
       const rated=q.filter(Boolean), avg=rated.length?rated.reduce((s,x)=>s+x.score,0)/rated.length:null;
       return `<tr><td>${tags(a.ratees)}</td><td><b>${esc(a.kpi)}</b></td><td>${tags(a.raters)}</td>
         <td>${a.formIds.map(id=>`<span class="tag">${esc(formById(id)?.title)}</span>`).join('')}</td>
+        <td><span class="mono">${dls.length} deadline${dls.length===1?'':'s'}</span><br>${nx?`Next: <b>${esc(fmtDue(nx))}</b>`:'All passed'}</td>
         <td><div class="progress"><span class="mono">${rated.length} of ${q.length} rated</span><span class="bar"><i style="width:${q.length?Math.round(rated.length/q.length*100):0}%"></i></span></div></td>
+        <td>${due.length?`${scoreBadge(ot/due.length*100)}<br><span class="opt-hint">${ot} of ${due.length}${od?` · <b class="err">${od} overdue</b>`:''}</span>`:'<span class="dim">–</span>'}</td>
         <td>${avg==null?'<span class="dim">–</span>':scoreBadge(avg)}</td>
         <td><button class="linkbtn" data-aedit="${a.id}">Edit</button><button class="linkbtn del" data-adel="${a.id}">${adelArm===a.id?'Confirm delete':'Delete'}</button></td></tr>`; }).join('')}</tbody></table>`
     :'<p class="empty">No accuracy set ups yet. Add one to pick the forms whose submissions are rated for accuracy.</p>';
@@ -1390,16 +1441,20 @@ $('#accTable').addEventListener('click',e=>{
   save(); renderAccuracyTab(); renderNav(); toast('Accuracy set up and its ratings deleted');
 });
 const AE=$('#accEditor');
-AE.addEventListener('input',e=>{ if(adraft&&e.target.id==='adKpi')adraft.kpi=e.target.value; });
+AE.addEventListener('input',e=>{ if(!adraft)return; const t=e.target; if(t.id==='adKpi')adraft.kpi=t.value;
+  if(t.id==='adDlDate')adraft._one.date=t.value; if(t.id==='adDlTime')adraft._one.time=t.value; });
+AE.addEventListener('change',e=>{ if(!adraft)return; const map={adRpEvery:'every',adRpFrom:'from',adRpTo:'to',adRpTime:'time'}; if(map[e.target.id]){ adraft._rep[map[e.target.id]]=e.target.value; refreshAcc(); } });
 AE.addEventListener('click',e=>{
   if(!adraft)return;
+  if(dlClick(e,'ad',adraft.rateDeadlines,adraft._one,adraft._rep,list=>{ adraft.rateDeadlines=list; refreshAcc(); }))return;
   if(e.target.id==='adCancel'){ adraft=null; state.accEditing=null; save(); renderAccuracyTab(); return; }
   if(e.target.id==='adSave'){
     const errs=[]; if(!adraft.ratees.length)errs.push('pick at least one Ratee'); if(!adraft.kpi.trim())errs.push('enter the KPI');
     if(!adraft.raters.length)errs.push('pick at least one Rater'); if(!adraft.formIds.length)errs.push('pick at least one form');
     if(adraft.ratees.some(id=>adraft.raters.includes(id)))errs.push('people cannot rate themselves, so remove anyone who is both a ratee and a rater');
+    if(!adraft.rateDeadlines.length)errs.push('add at least one rating deadline');
     const er=$('#adErr'); if(errs.length){ er.hidden=false; er.textContent='To save, '+errs.join(', ')+'.'; return; }
-    adraft.kpi=adraft.kpi.trim();
+    adraft.kpi=adraft.kpi.trim(); adraft.rateDeadlines=[...new Set(adraft.rateDeadlines)].sort(); delete adraft._one; delete adraft._rep;
     if(state.accEditing==='new'){ adraft.id=uid('a_'); state.accuracy.push(adraft); toast('Saved. New submissions appear in the raters’ To rate list.'); }
     else { const i=state.accuracy.findIndex(a=>a.id===state.accEditing); state.accuracy[i]=adraft; toast('Accuracy set up updated'); }
     adraft=null; state.accEditing=null; save(); renderAccuracyTab(); renderNav();
@@ -1408,12 +1463,13 @@ AE.addEventListener('click',e=>{
 
 /* To rate */
 function renderRateList(){
-  const q=rateQueue(state.who), pend=q.filter(x=>!x.rt).length, mine=state.accuracy.filter(a=>a.raters.includes(state.who));
-  $('#rateSub').innerHTML=mine.length?`${esc(personName(state.who))} rates ${mine.map(a=>`<b>${esc(a.kpi)}</b>`).join(', ')}. ${pend?`<span class="badge part">${pend} pending</span>`:'<span class="badge ok">All rated</span>'}`
+  const all=rateQueue(state.who), f=state.rateFocus, q=f?all.filter(x=>x.a.id===f.aid&&rateDueFor(x.a,x.r)===f.due):all;
+  const pend=all.filter(x=>!x.rt).length, over=all.filter(x=>rateState(x.a,x.r)==='overdue').length, mine=state.accuracy.filter(a=>a.raters.includes(state.who));
+  $('#rateSub').innerHTML=mine.length?`${esc(personName(state.who))} rates ${mine.map(a=>`<b>${esc(a.kpi)}</b>`).join(', ')}. ${pend?`<span class="badge part">${pend} pending</span>`:'<span class="badge ok">All rated</span>'} ${over?`<span class="badge late">${over} overdue</span>`:''}${f?`<br>Showing <b>${esc(accById(f.aid)?.kpi||'')}</b> due ${esc(fmtDue(f.due))} · <button type="button" class="linkbtn" id="rateAll">Show all</button>`:''}`
     :`${esc(personName(state.who))} is not a rater in any Accuracy Set Up. Switch person at the bottom of the sidebar to try a rater, such as Lea Ramos.`;
-  $('#rateList').innerHTML=q.length?`<table class="sched rate"><thead><tr><th>Ratee</th><th>Form</th><th>KPI</th><th>Task</th><th>Deadline</th><th>Submitted</th><th>Accuracy</th><th></th></tr></thead><tbody>${
-    q.map(({r,a,rt})=>`<tr><td>${esc(personName(r.by))}</td><td>${esc(formOf(r)?.title)}</td><td>${esc(a.kpi)}</td><td>${esc(schedById(r.scheduleId)?.name||'')}</td>
-      <td class="mono">${esc(fmtShort(r.due.slice(0,10)))}</td><td class="mono">${esc(fmtStamp(r.submittedAt))}</td><td>${rt?`${scoreBadge(rt.score)} <span class="dim">by ${esc(personName(rt.by))}</span>`:'<span class="badge closed">Pending</span>'}</td>
+  $('#rateList').innerHTML=q.length?`<table class="sched rate"><thead><tr><th>Ratee</th><th>Form</th><th>KPI</th><th>Task</th><th>Deadline</th><th>Submitted</th><th>Rate by</th><th>Accuracy</th><th></th></tr></thead><tbody>${
+    q.slice().sort((x,y)=>{ const o={overdue:0,notdue:1,nodue:2}; const sx=x.rt?9:o[rateState(x.a,x.r)], sy=y.rt?9:o[rateState(y.a,y.r)]; return sx-sy||(rateDueFor(x.a,x.r)||'9').localeCompare(rateDueFor(y.a,y.r)||'9'); }).map(({r,a,rt})=>`<tr><td>${esc(personName(r.by))}</td><td>${esc(formOf(r)?.title)}</td><td>${esc(a.kpi)}</td><td>${esc(schedById(r.scheduleId)?.name||'')}</td>
+      <td class="mono">${esc(fmtShort(r.due.slice(0,10)))}</td><td class="mono">${esc(fmtStamp(r.submittedAt))}</td><td>${rateDueFor(a,r)?`<span class="mono">${esc(fmtDue(rateDueFor(a,r)))}</span><br>`:''}${rtBadge(rateState(a,r))}</td><td>${rt?`${scoreBadge(rt.score)} <span class="dim">by ${esc(personName(rt.by))}</span>`:'<span class="badge closed">Pending</span>'}</td>
       <td><button class="btn ${rt?'ghost':''} small" data-rate="${r.id}|${a.id}">${rt?'Edit rating':'Rate'}</button></td></tr>`).join('')}</tbody></table>`
     :'<p class="empty">Nothing to rate.</p>';
   renderRateSheet();
@@ -1424,7 +1480,8 @@ function renderRateSheet(){
   const F=formOf(r), rt=r.ratings?.[a.id], sc=rt?rt.score:'';
   box.hidden=false;
   box.innerHTML=`<div><p class="eyebrow">Rate accuracy · ${esc(a.kpi)}</p><h2>${esc(F.title)} · ${esc(personName(r.by))}</h2>
-     <p class="lede" style="margin-top:4px">${esc(schedById(r.scheduleId)?.name||'')} · deadline ${esc(fmtStamp(r.due))} · submitted ${esc(fmtStamp(r.submittedAt))} · ${r.values.sys_timeliness}</p></div>
+     <p class="lede" style="margin-top:4px">${esc(schedById(r.scheduleId)?.name||'')} · deadline ${esc(fmtStamp(r.due))} · submitted ${esc(fmtStamp(r.submittedAt))} · ${r.values.sys_timeliness}</p>
+     <p style="margin-top:6px">Rate by <b>${rateDueFor(a,r)?esc(fmtDue(rateDueFor(a,r))):'no rating deadline'}</b> ${rtBadge(rateState(a,r))}</p></div>
    <dl class="answers">${answerable(F).map(f=>`<dt>${esc(f.label)}</dt><dd>${cellHtml(f,r.values[f.id])}</dd>`).join('')}</dl>
    <div class="rate-input">
      <label class="fld" for="rateScore">Accuracy score (%)<span class="score-row"><input type="range" id="rateRange" min="0" max="100" step="1" value="${sc===''?100:sc}" aria-label="Accuracy score slider">
@@ -1435,6 +1492,7 @@ function renderRateSheet(){
    <div class="sheet-foot"><button type="button" class="btn" id="rateSave">Save rating</button><button type="button" class="btn ghost" id="rateClose">Close</button>
      ${rt?`<span class="opt-hint">Rated by ${esc(personName(rt.by))}, ${esc(fmtStamp(rt.at))}</span>`:''}</div>`;
 }
+document.addEventListener('click',e=>{ if(e.target.id==='rateAll'){ state.rateFocus=null; save(); renderRateList(); } });
 $('#rateList').addEventListener('click',e=>{ const b=e.target.closest('[data-rate]'); if(!b)return; const [rid,aid]=b.dataset.rate.split('|');
   state.rating={rid,aid}; save(); renderRateSheet(); requestAnimationFrame(()=>$('#rateSheet').scrollIntoView({behavior:'smooth',block:'start'})); });
 $('#rateSheet').addEventListener('input',e=>{
@@ -1459,16 +1517,25 @@ function occState(s,due,who){
   const done=occDone(s,due,who), now=nowIso(), pr=state.progress[progKey(s.id,due,who)];
   if(done)return 'done'; if(due<now)return 'overdue'; if(pr&&(pr.start||pr.pct))return 'inprog'; return 'open';
 }
+/* rating deadlines where the signed-in person is a rater, with the submissions due at each */
+function myRateOccs(){
+  const who=state.who, units=latestOnly(state.responses);
+  return state.accuracy.filter(a=>a.raters.includes(who)).flatMap(a=>(a.rateDeadlines||[]).map(due=>{
+    const its=units.filter(r=>r.by!==who&&setupsFor(r).some(x=>x.id===a.id)&&rateDueFor(a,r)===due);
+    const left=its.filter(r=>!r.ratings?.[a.id]).length;
+    return {a,due,n:its.length,left,st:!its.length?'open':!left?'done':due<nowIso()?'overdue':its.length>left?'inprog':'open'}; })).filter(o=>o.n||o.due>=nowIso());
+}
 const OCC_TXT={done:'Submitted',overdue:'Missed',inprog:'In progress',open:'Not started'};
 const occBadge=st=>`<span class="badge ${st==='done'?'ok':st==='overdue'?'late':st==='inprog'?'part':'sched'}">${OCC_TXT[st]}</span>`;
 function renderCalendar(){
   const ym=state.cal||nowIso().slice(0,7), y=+ym.slice(0,4), m=+ym.slice(5,7);
   const first=new Date(y,m-1,1), startOff=(first.getDay()+6)%7, days=new Date(y,m,0).getDate();
-  const occs=myOccs(), today=nowIso().slice(0,10), who=state.who;
-  const byDay={}, starts={};
+  const occs=myOccs(), today=nowIso().slice(0,10), who=state.who, rocc=myRateOccs();
+  const byDay={}, starts={}, rByDay={};
+  rocc.forEach(o=>(rByDay[o.due.slice(0,10)]??=[]).push(o));
   occs.forEach(o=>{ (byDay[o.due.slice(0,10)]??=[]).push(o); const pr=state.progress[progKey(o.s.id,o.due,who)]; if(pr?.start&&!occDone(o.s,o.due,who))(starts[pr.start]??=[]).push(o); });
   const me=personById(who);
-  $('#calSub').innerHTML=`${esc(me?.name||'')}'s deadlines from Schedule Set Up. Click one to record a start date, progress or notes, and to fill in its forms.`;
+  $('#calSub').innerHTML=`${esc(me?.name||'')}'s deadlines from Schedule Set Up${rocc.length?', plus rating deadlines from Accuracy Set Up':''}. Click a deadline to record a start date, progress or notes, and to fill in its forms.`;
   $('#calTitle').textContent=`${['January','February','March','April','May','June','July','August','September','October','November','December'][m-1]} ${y}`;
   let cells='';
   for(let i=0;i<startOff;i++)cells+='<div class="cal-c out" aria-hidden="true"></div>';
@@ -1477,21 +1544,24 @@ function renderCalendar(){
     cells+=`<div class="cal-c ${ds===today?'today':''}"><span class="cal-d">${d}</span>${
       st.map(o=>`<button type="button" class="ev start" data-occ="${o.s.id}|${o.due}" title="Started: ${esc(o.s.name)}"><span class="ev-n">▸ ${esc(o.s.name)}</span></button>`).join('')}${
       list.map(o=>{ const os=occState(o.s,o.due,who), pr=state.progress[progKey(o.s.id,o.due,who)], sel=state.sel===o.s.id+'|'+o.due;
-        return `<button type="button" class="ev ${os} ${sel?'sel':''}" data-occ="${o.s.id}|${o.due}" title="${esc(fmtTime(o.due.slice(11,16)))} · ${esc(o.s.name)} · ${OCC_TXT[os]}"><span class="ev-n">${esc(o.s.name)}</span>${pr?.pct&&os!=='done'?`<span class="ev-bar"><i style="width:${pr.pct}%"></i></span>`:''}</button>`; }).join('')}</div>`;
+        return `<button type="button" class="ev ${os} ${sel?'sel':''}" data-occ="${o.s.id}|${o.due}" title="${esc(fmtTime(o.due.slice(11,16)))} · ${esc(o.s.name)} · ${OCC_TXT[os]}"><span class="ev-n">${esc(o.s.name)}</span>${pr?.pct&&os!=='done'?`<span class="ev-bar"><i style="width:${pr.pct}%"></i></span>`:''}</button>`; }).join('')}${
+      (rByDay[ds]||[]).map(o=>`<button type="button" class="ev rate ${o.st}" data-rocc="${o.a.id}|${o.due}" title="Rate by ${esc(fmtTime(o.due.slice(11,16)))} · ${esc(o.a.kpi)} · ${o.left} of ${o.n} left"><span class="ev-n">★ ${esc(o.a.kpi)}${o.n?` (${o.left?o.left+' left':'done'})`:''}</span></button>`).join('')}</div>`;
   }
   const tail=(7-(startOff+days)%7)%7; for(let i=0;i<tail;i++)cells+='<div class="cal-c out" aria-hidden="true"></div>';
   $('#calGrid').innerHTML=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w=>`<div class="cal-w">${w}</div>`).join('')+cells;
   const up=occs.filter(o=>o.due>=nowIso()||!occDone(o.s,o.due,who)).sort((a,b)=>a.due.localeCompare(b.due)).filter(o=>o.due>=addDays(today,-14)).slice(0,8);
-  $('#agenda').innerHTML=up.length?up.map(o=>{ const os=occState(o.s,o.due,who), pr=state.progress[progKey(o.s.id,o.due,who)];
+  const rup=rocc.filter(o=>o.left&&(o.due>=addDays(today,-14))).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,4);
+  const ragenda=rup.map(o=>`<button type="button" class="ag" data-rocc="${o.a.id}|${o.due}"><span class="ag-d"><b>${esc(fmtShort(o.due.slice(0,10)))}</b><small>${esc(fmtTime(o.due.slice(11,16)))}</small></span><span class="ag-m"><b>★ Rate: ${esc(o.a.kpi)}</b><small>${o.left} of ${o.n} still to rate</small></span>${o.st==='overdue'?'<span class="badge late">Overdue</span>':'<span class="badge part">To rate</span>'}</button>`).join('');
+  $('#agenda').innerHTML=ragenda+(up.length?up.map(o=>{ const os=occState(o.s,o.due,who), pr=state.progress[progKey(o.s.id,o.due,who)];
     return `<button type="button" class="ag ${state.sel===o.s.id+'|'+o.due?'sel':''}" data-occ="${o.s.id}|${o.due}"><span class="ag-d"><b>${esc(fmtShort(o.due.slice(0,10)))}</b><small>${esc(fmtTime(o.due.slice(11,16)))}</small></span>
       <span class="ag-m"><b>${esc(o.s.name)}</b><small>${esc(o.s.formIds.map(id=>formById(id)?.title).join(', '))}${pr?.pct&&os!=='done'?` · ${pr.pct}%`:''}</small></span>${occBadge(os)}</button>`; }).join('')
-    :'<p class="empty">No upcoming deadlines.</p>';
+    :(ragenda?'':'<p class="empty">No upcoming deadlines.</p>'));
   renderOccPanel();
 }
 function renderOccPanel(){
   if(!state.sel){ const nx=myOccs().filter(o=>o.due>=nowIso()&&!occDone(o.s,o.due,state.who)).sort((a,b)=>a.due.localeCompare(b.due))[0]; if(nx)state.sel=nx.s.id+'|'+nx.due; }
   const box=$('#occPanel'), [sid,due]=(state.sel||'').split('|'), s=schedById(sid), who=state.who;
-  if(!s||!s.assignees.includes(who)||!s.deadlines.includes(due)){ state.sel=null; box.innerHTML='<p class="empty">Select a deadline on the calendar or in Upcoming to see its details.</p>'; renderSheet(); return; }
+  if(!s||!s.assignees.includes(who)||!s.deadlines.includes(due)){ state.sel=null; box.innerHTML=myOccs().length?'<p class="empty">Select a deadline on the calendar or in Upcoming to see its details.</p>':`<p class="empty">${esc(personName(who))} has no submission deadlines.${myRateOccs().length?' The ★ entries are rating deadlines from Accuracy Set Up. Click one to rate the submissions due then.':''}</p>`; renderSheet(); return; }
   const pr=state.progress[progKey(sid,due,who)]||{}, os=occState(s,due,who);
   box.innerHTML=`<div class="occ-head"><div><p class="eyebrow">Deadline</p><h3>${esc(s.name)}</h3><p class="opt-hint">${esc(fmtDue(due))}${s.description?` · ${esc(s.description)}`:''}</p></div>${occBadge(os)}</div>
     <div class="occ-meta"><span>Reviewers: ${esc(names(s.reviewers).join(', '))}</span></div>
@@ -1507,6 +1577,7 @@ function renderOccPanel(){
     </div>`;
   renderSheet();
 }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-rocc]'); if(!b)return; const [aid,due]=b.dataset.rocc.split('|'); state.rateFocus={aid,due}; save(); go('rate'); window.scrollTo({top:0}); });
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-occ]'); if(!b)return;
   state.sel=b.dataset.occ; state.open=null; save(); renderCalendar();
   if(innerWidth<900)requestAnimationFrame(()=>$('#occPanel').scrollIntoView({behavior:'smooth',block:'start'})); });
@@ -1663,7 +1734,7 @@ const SEP='\u001f';
 const GRANS=[['day','Day'],['week','Week'],['month','Month'],['quarter','Quarter'],['half','Half-year'],['year','Year']];
 const dateFields=()=>pivotFields().filter(f=>isDateLike(f));
 function fixPivot(){
-  if(state.pivot.value==='m_accuracy'&&!isAccForm(pivotForm()?.id))state.pivot.value='';
+  if(['m_accuracy','m_rontime'].includes(state.pivot.value)&&!isAccForm(pivotForm()?.id))state.pivot.value='';
   const p=state.pivot, g=groupable(), ok=id=>g.some(f=>f.id===id); p.gran=p.gran||'month';
   const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
   p.rows=[...new Set(arr(p.rows).filter(ok))]; p.cols=[...new Set(arr(p.cols).filter(ok))].filter(id=>!p.rows.includes(id));
@@ -1682,7 +1753,7 @@ const hiddenCount=id=>(state.pivot.filters?.[id]||[]).length;
 const filterBtn=f=>{ const n=hiddenCount(f.id);
   return `<button type="button" class="fbtn ${n?'on':''}" data-filter="${f.id}" aria-label="Filter ${esc(f.label)}${n?`, ${n} hidden`:''}" title="Filter ${esc(f.label)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.6 5.4V13l-2.8 1.2V8.4z" fill="currentColor"/></svg>${n?`<span>${n}</span>`:''}</button>`; };
 function renderPivotControls(){
-  MEASURES=ALL_MEASURES.filter(m=>m.id!=='m_accuracy'||isAccForm(pivotForm()?.id));
+  MEASURES=ALL_MEASURES.filter(m=>!['m_accuracy','m_rontime'].includes(m.id)||isAccForm(pivotForm()?.id));
   fixPivot(); const p=state.pivot;
   const txt=ids=>ids.length?`${ids.length>1?`<span class="n">${ids.length}</span>`:''}${ids.map(id=>esc(pfById(id)?.label||'')).join(' › ')}`:'<span class="dim">None</span>';
   $('#pvRowsTxt').innerHTML=txt(p.rows); $('#pvColsTxt').innerHTML=txt(p.cols);
@@ -1701,6 +1772,7 @@ function renderPivotControls(){
     (p.value==='m_complete'
     ?`<b>Completeness</b> = submissions ÷ submissions required. Each deadline of a schedule that includes this form requires each assignee to submit it once. Submitting twice for the same deadline counts once, and late submissions still count.${dims.some(f=>!f.taskAttr)?' Grouping by a question answer or by Timeliness splits only the submitted side.':''}${(p.range.from||p.range.to)&&rgf&&!rgf.taskAttr?' The date range only limits required submissions when it is on Deadline.':''}`
     :p.value==='m_accuracy'?'<b>Accuracy</b> = average of the raters\' scores (0–100%) on the latest submission per person and deadline. Submissions waiting for a rating show as pending and are not counted until rated.'
+    :p.value==='m_rontime'?'<b>Rating on-time %</b> = ratings saved by their rating deadline ÷ ratings that were due. Overdue ratings count as not on time; ratings not due yet are left out.'
     :p.value==='m_ontime'?'<b>On-time rate</b> = submissions made by their deadline ÷ all submissions.'
     :p.value?'':'Counting responses. Pick Completeness %, On-time rate % or Accuracy % under Values, or a number, scale or rating question to sum or average it.')
     +(multi?' A field with several values (checkboxes, reviewers, KPIs) can put one response in more than one row or column. Totals count it once.':'');
@@ -1844,7 +1916,7 @@ function rangeTest(){
 function computePivot(){
   const p=state.pivot, fid=pivotForm()?.id;
   const rfs=(p.rows||[]).map(pfById).filter(Boolean), cfs=(p.cols||[]).map(pfById).filter(Boolean);
-  const special=p.value==='m_complete'?'complete':p.value==='m_ontime'?'ontime':p.value==='m_accuracy'?'accuracy':null;
+  const special=p.value==='m_complete'?'complete':p.value==='m_ontime'?'ontime':p.value==='m_accuracy'?'accuracy':p.value==='m_rontime'?'ratetime':null;
   const vf=!special&&p.value?pfById(p.value):null;
   const agg=special?'pct':vf?p.agg:'count';
   const filt=p.filters||{}, RG=rangeTest();
@@ -1853,7 +1925,7 @@ function computePivot(){
     for(const f of fs){ const ks=keysF(f,x); if(!ks.length)return []; acc=acc.flatMap(a=>ks.map(k=>[...a,k])); }
     return acc.map(a=>a.join(SEP)); };
   const R0=state.responses.filter(r=>r.formId===fid&&RG.ok(r));
-  const R=special==='accuracy'?latestOnly(R0).flatMap(r=>setupsFor(r).map(a=>({...r,_setup:a}))):R0;
+  const R=(special==='accuracy'||special==='ratetime')?latestOnly(R0).flatMap(r=>setupsFor(r).map(a=>({...r,_setup:a}))):R0;
   const pend={}, pendRow={}, pendCol={}; let pendAll=0;
   const A=()=>({sum:0,count:0,min:Infinity,max:-Infinity}); const add=(a,x)=>{a.sum+=x;a.count++;a.min=Math.min(a.min,x);a.max=Math.max(a.max,x);};
   const cells={}, rowT={}, colT={}, grand=A(); const rs=new Set(), cs=new Set();
@@ -1864,6 +1936,7 @@ function computePivot(){
     else if(special==='accuracy'){ const rt=r.ratings?.[r._setup.id];
       if(!rt){ rks.forEach(rk=>{ rs.add(rk); pendRow[rk]=(pendRow[rk]||0)+1; cks.forEach(ck=>{ pend[rk+'|'+ck]=(pend[rk+'|'+ck]||0)+1; }); }); cks.forEach(ck=>{ cs.add(ck); pendCol[ck]=(pendCol[ck]||0)+1; }); pendAll++; return; }
       x=rt.score; }
+    else if(special==='ratetime'){ const st=rateState(r._setup,r); if(st==='ontime')x=100; else if(st==='late'||st==='overdue')x=0; else return; }
     else if(vf){ if(!inForm(vf,r))return; const raw=valueOf(r,vf); if(isBlank(raw))return; x=Number(raw); if(!isFinite(x))return; }
     rks.forEach(rk=>{ rs.add(rk); add(rowT[rk]??=A(),x); cks.forEach(ck=>{ ((cells[rk]??={})[ck]??=A()); add(cells[rk][ck],x); }); });
     cks.forEach(ck=>{ cs.add(ck); add(colT[ck]??=A(),x); });
@@ -1872,6 +1945,8 @@ function computePivot(){
   const fin=a=>{ if(!a||!a.count)return null; const g=agg==='pct'?'avg':agg; return g==='count'?a.count:g==='sum'?a.sum:g==='avg'?a.sum/a.count:g==='min'?a.min:a.max; };
   const P={rfs,cfs,rf:rfs[0]||null,cf:cfs[0]||null,vf,special,agg,
     value:(r,c)=>fin(cells[r]?.[c]), rowTotal:r=>fin(rowT[r]), colTotal:c=>fin(colT[c]), grand:fin(grand), detail:()=>null};
+  if(special==='ratetime'){ const t=a=>a?.count?{txt:`${Math.round(a.sum/100)} of ${a.count} on time`}:null;
+    P.detail=(r,c)=>r==null&&c==null?t(grand):r==null?t(colT[c]):c==null?t(rowT[r]):t(cells[r]?.[c]); }
   if(special==='accuracy'){ const t=(a,pn)=>{ const n=a?.count||0; return (n||pn)?{txt:`${n} rated${pn?` · ${pn} pending`:''}`}:null; };
     P.detail=(r,c)=>r==null&&c==null?t(grand,pendAll):r==null?t(colT[c],pendCol[c]):c==null?t(rowT[r],pendRow[r]):t(cells[r]?.[c],pend[r+'|'+c]); }
   if(special==='complete'&&rfs.length){
@@ -1905,7 +1980,7 @@ function computePivot(){
 }
 const AGG_LABEL={count:'Count',sum:'Sum',avg:'Average',min:'Minimum',max:'Maximum'};
 function fmt(v,agg){ if(v==null)return '–'; if(agg==='pct')return Math.round(v)+'%'; return v.toLocaleString('en-US',{maximumFractionDigits:agg==='avg'?1:2}); }
-function measureName(P){ if(P.special==='accuracy')return 'Accuracy %'; if(P.special==='complete')return 'Completeness %'; if(P.special==='ontime')return 'On-time rate %'; return P.vf?`${AGG_LABEL[P.agg]} of ${P.vf.label}`:'Count of responses'; }
+function measureName(P){ if(P.special==='ratetime')return 'Rating on-time %'; if(P.special==='accuracy')return 'Accuracy %'; if(P.special==='complete')return 'Completeness %'; if(P.special==='ontime')return 'On-time rate %'; return P.vf?`${AGG_LABEL[P.agg]} of ${P.vf.label}`:'Count of responses'; }
 function pivotHtml(P,heat){
   if(!pivotForm())return '<p class="empty">Pick a form.</p>';
   if(!P.rfs.length)return '<p class="empty">Add a field to Rows.</p>';
@@ -1985,7 +2060,7 @@ $('#copyCsv').addEventListener('click',()=>{
 /* ---------- responses ---------- */
 const RESP_META=[{id:'t_task',label:'Task',type:'text'},{id:'t_due',label:'Deadline',type:'timestamp'},{id:'t_assignee',label:'Submitted by',type:'text'},{id:'t_dept',label:'Department',type:'text'},{id:'t_reviewer',label:'Reviewers',type:'checkbox'}];
 function accCell(r){ const ss=setupsFor(r); if(!ss.length)return '<span class="dim">No rater set</span>';
-  return ss.map(a=>{ const rt=r.ratings?.[a.id]; return `<span class="acc-line">${esc(a.kpi)}: ${rt?`<b>${rt.score}%</b> <span class="dim">by ${esc(personName(rt.by))}</span>${rt.comment?` <span class="dim" title="${esc(rt.comment)}">(comment)</span>`:''}`:'<span class="badge closed">Pending</span>'}</span>`; }).join('<br>'); }
+  return ss.map(a=>{ const rt=r.ratings?.[a.id]; return `<span class="acc-line">${esc(a.kpi)}: ${rt?`<b>${rt.score}%</b> <span class="dim">by ${esc(personName(rt.by))}</span>${rt.comment?` <span class="dim" title="${esc(rt.comment)}">(comment)</span>`:''}`:''} ${rtBadge(rateState(a,r))}</span>`; }).join('<br>'); }
 function renderResponses(){
   const F=formById(state.respFilter)||curForm(); state.respFilter=F.id;
   $('#respForm').innerHTML=state.forms.map(x=>`<option value="${x.id}" ${x.id===F.id?'selected':''}>${esc(x.title)}</option>`).join('');
